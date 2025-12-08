@@ -1,46 +1,73 @@
+/**
+ * AI API Gateway Server
+ * 
+ * Multi-provider AI API supporting:
+ * - OpenAI (GPT-5-nano, gpt-image-1)
+ * - Gemini (future)
+ * - Grok (future)
+ * - DeepSeek (future)
+ * 
+ * Architecture: SOLID principles with Strategy/Factory pattern
+ */
+
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 
-const {
-    handleChatMessage,
-    handleImageAnalysis,
-    handleImageGeneration
-} = require('./controllers/openaiController');
+const config = require('./config');
+const routes = require('./routes');
+const { errorHandler, notFoundHandler } = require('./middleware/errorHandler');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
 
 // Middleware
 app.use(cors());
-app.use(express.json({ limit: '25mb' }));
+app.use(express.json({ limit: config.server.bodyLimit }));
 
-// Health Check
-app.get('/', (_, res) => {
-    res.send('✅ OpenAI API is running');
+// Serve static frontend
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Request logging (development)
+if (process.env.NODE_ENV !== 'production') {
+    app.use((req, res, next) => {
+        console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`);
+        next();
+    });
+}
+
+// API Routes
+app.use('/api', routes);
+
+// Serve frontend for root
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// OpenAI Routes
-app.post('/api/message', handleChatMessage);
-app.post('/api/analyze-image', handleImageAnalysis);
-app.post('/api/generate-image', handleImageGeneration);
+// Error handling
+app.use('*', notFoundHandler);
+app.use(errorHandler);
 
-// 404 handler
-app.use('*', (req, res) => {
-    res.status(404).json({ error: 'Route not found', path: req.originalUrl });
-});
-
-// Error handler
-app.use((error, req, res, next) => {
-    console.error('Server error:', error);
-    res.status(500).json({ error: 'Internal server error', details: error.message });
-});
-
-// Start Server
+// Start server
+const PORT = config.server.port;
 app.listen(PORT, () => {
-    console.log(`🚀 OpenAI API is running on port ${PORT}`);
-    console.log(`📡 Available endpoints:`);
-    console.log(`   POST /api/message`);
-    console.log(`   POST /api/analyze-image`);
-    console.log(`   POST /api/generate-image`);
+    console.log('');
+    console.log('🚀 AI API Gateway Started');
+    console.log('═══════════════════════════════════════');
+    console.log(`   Port: ${PORT}`);
+    console.log(`   Environment: ${process.env.NODE_ENV || 'development'}`);
+    console.log('');
+    console.log('🌐 Frontend:');
+    console.log(`   http://localhost:${PORT}`);
+    console.log('');
+    console.log('📡 API Endpoints:');
+    console.log('   GET  /api              - API info & health');
+    console.log('   GET  /api/providers    - List providers');
+    console.log('   POST /api/message      - Chat completion');
+    console.log('   POST /api/analyze-image - Image analysis');
+    console.log('   POST /api/generate-image - Image generation');
+    console.log('═══════════════════════════════════════');
+    console.log('');
 });
+
+module.exports = app;

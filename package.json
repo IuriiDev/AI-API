@@ -1,20 +1,30 @@
 {
-  "name": "openai-api",
-  "version": "1.0.0",
-  "description": "OpenAI API for FixMaster App",
+  "name": "ai-api-gateway",
+  "version": "2.0.0",
+  "description": "Multi-provider AI API Gateway - OpenAI, Gemini, Grok, DeepSeek",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "dev": "NODE_ENV=development node server.js"
   },
   "dependencies": {
-    "axios": "^0.27.2",
+    "axios": "^1.6.0",
     "cors": "^2.8.5",
-    "express": "^4.18.1",
-    "dotenv": "^16.0.1"
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2"
   },
   "engines": {
-    "node": "16.x"
+    "node": ">=18.x"
   },
   "author": "Iurii Dolotov",
-  "license": "ISC"
+  "license": "ISC",
+  "keywords": [
+    "openai",
+    "gemini",
+    "grok",
+    "deepseek",
+    "ai",
+    "api",
+    "gateway"
+  ]
 }
