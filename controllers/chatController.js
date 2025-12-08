@@ -26,10 +26,12 @@ async function handleChat(req, res) {
 
     const provider = getProvider(providerName);
     
+    // Pass tokens parameter - providers handle naming internally
     const result = await provider.chat({
         messages,
         model,
-        maxCompletionTokens
+        maxCompletionTokens,
+        maxTokens: maxCompletionTokens // For providers using max_tokens (Grok)
     });
 
     res.json({

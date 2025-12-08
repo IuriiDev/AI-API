@@ -33,35 +33,40 @@ module.exports = {
         
         gemini: {
             name: 'Gemini',
-            displayName: 'Gemini 2.0 Flash',
+            displayName: 'Gemini 2.5 Flash',
             baseUrl: 'https://generativelanguage.googleapis.com/v1beta',
             apiKey: process.env.GEMINI_API_KEY,
             endpoints: {
-                chat: '/models/gemini-2.0-flash:generateContent'
+                // Gemini uses model name in URL path
+                chat: '/models/gemini-2.5-flash:generateContent'
             },
             models: {
-                chat: 'gemini-2.0-flash',
-                vision: 'gemini-2.0-flash'
+                chat: 'gemini-2.5-flash',
+                vision: 'gemini-2.5-flash'
             },
             defaults: {
-                maxCompletionTokens: 4096
+                // Gemini uses maxOutputTokens in generationConfig
+                maxOutputTokens: 8192
             }
         },
         
         grok: {
             name: 'Grok',
-            displayName: 'Grok Beta',
+            displayName: 'Grok 4.1 Fast',
             baseUrl: 'https://api.x.ai/v1',
             apiKey: process.env.GROK_API_KEY,
             endpoints: {
+                // OpenAI-compatible endpoint
                 chat: '/chat/completions'
             },
             models: {
-                chat: 'grok-beta',
-                vision: 'grok-vision-beta'
+                // Best value: 2M context, $0.20/$0.50 per 1M tokens, supports vision
+                chat: 'grok-4-1-fast-non-reasoning',
+                vision: 'grok-4-1-fast-non-reasoning'
             },
             defaults: {
-                maxCompletionTokens: 4096
+                // xAI uses max_tokens (not max_completion_tokens)
+                maxTokens: 4096
             }
         }
     },

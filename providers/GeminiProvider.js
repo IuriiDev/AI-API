@@ -1,9 +1,17 @@
 /**
  * GeminiProvider - Google Gemini API Implementation
  * 
- * Supports:
- * - Chat completions (gemini-2.0-flash)
- * - Image analysis/vision (gemini-2.0-flash)
+ * API: https://generativelanguage.googleapis.com/v1beta
+ * Auth: API key in URL parameter (not header)
+ * 
+ * Models:
+ * - gemini-3-pro (most advanced, multimodal)
+ * - gemini-2.5-flash (1M context, balanced)
+ * 
+ * Note: Uses different format from OpenAI:
+ * - 'contents' instead of 'messages'
+ * - 'parts' with 'text' and 'inline_data'
+ * - 'role: model' instead of 'role: assistant'
  */
 
 const axios = require('axios');
@@ -47,7 +55,7 @@ class GeminiProvider extends BaseProvider {
         const payload = {
             contents,
             generationConfig: {
-                maxOutputTokens: maxCompletionTokens || this.defaults.maxCompletionTokens
+                maxOutputTokens: maxCompletionTokens || this.defaults.maxOutputTokens
             }
         };
 
@@ -80,7 +88,7 @@ class GeminiProvider extends BaseProvider {
                 }
             ],
             generationConfig: {
-                maxOutputTokens: maxCompletionTokens || this.defaults.maxCompletionTokens
+                maxOutputTokens: maxCompletionTokens || this.defaults.maxOutputTokens
             }
         };
 

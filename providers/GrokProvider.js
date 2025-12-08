@@ -1,9 +1,14 @@
 /**
  * GrokProvider - xAI Grok API Implementation
  * 
- * Supports:
- * - Chat completions (grok-beta)
- * - Image analysis/vision (grok-vision-beta)
+ * API: OpenAI-compatible (https://api.x.ai/v1)
+ * 
+ * Models:
+ * - grok-4 (256K context, advanced reasoning)
+ * - grok-4.1-fast (2M context, fast responses)
+ * - grok-2-vision (image analysis)
+ * 
+ * Pricing: $3/1M input, $15/1M output tokens
  */
 
 const axios = require('axios');
@@ -21,13 +26,13 @@ class GrokProvider extends BaseProvider {
     /**
      * Chat completion
      */
-    async chat({ messages, model, maxCompletionTokens }) {
+    async chat({ messages, model, maxTokens }) {
         const url = this.buildUrl(this.endpoints.chat);
         
         const payload = {
             model: model || this.models.chat,
             messages,
-            max_tokens: maxCompletionTokens || this.defaults.maxCompletionTokens
+            max_tokens: maxTokens || this.defaults.maxTokens
         };
 
         const response = await axios.post(url, payload, { 
@@ -40,7 +45,7 @@ class GrokProvider extends BaseProvider {
     /**
      * Image analysis using vision model
      */
-    async analyzeImage({ image, prompt, maxCompletionTokens }) {
+    async analyzeImage({ image, prompt, maxTokens }) {
         const url = this.buildUrl(this.endpoints.chat);
         
         const payload = {
@@ -59,7 +64,7 @@ class GrokProvider extends BaseProvider {
                     ]
                 }
             ],
-            max_tokens: maxCompletionTokens || this.defaults.maxCompletionTokens
+            max_tokens: maxTokens || this.defaults.maxTokens
         };
 
         const response = await axios.post(url, payload, { 
