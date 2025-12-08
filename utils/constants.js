@@ -15,10 +15,10 @@ const MODELS = {
     GPT_IMAGE_1: 'gpt-image-1'          // Latest image generation model
 };
 
-// Token Limits
+// Token Limits (use max_completion_tokens for latest API)
 const TOKEN_LIMITS = {
     GPT_5_NANO_CONTEXT: 400000,
-    GPT_5_NANO_MAX_OUTPUT: 128000,
+    GPT_5_NANO_MAX_COMPLETION: 128000,
     DEFAULT_MAX_OUTPUT: 4096
 };
 

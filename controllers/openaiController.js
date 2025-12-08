@@ -12,7 +12,7 @@ const {
  * Supports any OpenAI chat model
  */
 exports.handleChatMessage = async (req, res) => {
-    const { messages, model, max_tokens } = req.body;
+    const { messages, model, max_completion_tokens } = req.body;
 
     if (!Array.isArray(messages) || !model) {
         return res.status(400).json({
@@ -23,7 +23,7 @@ exports.handleChatMessage = async (req, res) => {
     const payload = {
         model,
         messages,
-        max_tokens: max_tokens || TOKEN_LIMITS.DEFAULT_MAX_OUTPUT
+        max_completion_tokens: max_completion_tokens || TOKEN_LIMITS.DEFAULT_MAX_OUTPUT
     };
 
     try {
@@ -44,7 +44,7 @@ exports.handleChatMessage = async (req, res) => {
  * - Optimized for summarization and classification
  */
 exports.handleImageAnalysis = async (req, res) => {
-    const { image, prompt, max_tokens } = req.body;
+    const { image, prompt, max_completion_tokens } = req.body;
 
     if (!image || !prompt) {
         return res.status(400).json({
@@ -71,7 +71,7 @@ exports.handleImageAnalysis = async (req, res) => {
                 ]
             }
         ],
-        max_tokens: max_tokens || TOKEN_LIMITS.DEFAULT_MAX_OUTPUT
+        max_completion_tokens: max_completion_tokens || TOKEN_LIMITS.DEFAULT_MAX_OUTPUT
     };
 
     try {
