@@ -11,17 +11,14 @@
 
 const config = require('../config');
 const OpenAIProvider = require('./OpenAIProvider');
-// Future imports:
-// const GeminiProvider = require('./GeminiProvider');
-// const GrokProvider = require('./GrokProvider');
-// const DeepSeekProvider = require('./DeepSeekProvider');
+const GeminiProvider = require('./GeminiProvider');
+const GrokProvider = require('./GrokProvider');
 
 // Provider registry - maps provider names to their classes
 const providerRegistry = {
     openai: OpenAIProvider,
-    // gemini: GeminiProvider,
-    // grok: GrokProvider,
-    // deepseek: DeepSeekProvider
+    gemini: GeminiProvider,
+    grok: GrokProvider
 };
 
 // Provider instances cache (singleton per provider)

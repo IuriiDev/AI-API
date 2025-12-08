@@ -11,11 +11,15 @@
             --bg-primary: #212121;
             --bg-secondary: #2f2f2f;
             --bg-input: #303030;
+            --bg-hover: #3a3a3a;
             --text-primary: #ececec;
             --text-secondary: #b4b4b4;
             --text-muted: #8e8e8e;
             --accent: #0084ff;
             --border: #424242;
+            --openai: #10a37f;
+            --gemini: #4285f4;
+            --grok: #1da1f2;
         }
 
         * {
@@ -35,39 +39,145 @@
 
         /* Header */
         .header {
-            padding: 12px 16px;
+            padding: 12px 20px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            border-bottom: 1px solid transparent;
         }
 
-        .header-left {
+        /* Model Selector */
+        .model-selector {
+            position: relative;
+        }
+
+        .model-selector-btn {
             display: flex;
             align-items: center;
-            gap: 6px;
-        }
-
-        .header h1 {
+            gap: 8px;
+            background: none;
+            border: none;
+            color: var(--text-primary);
+            font-family: inherit;
             font-size: 1rem;
             font-weight: 500;
+            cursor: pointer;
+            padding: 8px 12px;
+            border-radius: 8px;
+            transition: background 0.2s;
+        }
+
+        .model-selector-btn:hover {
+            background: var(--bg-secondary);
+        }
+
+        .model-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--openai);
+        }
+
+        .model-indicator.gemini { background: var(--gemini); }
+        .model-indicator.grok { background: var(--grok); }
+
+        .model-chevron {
+            color: var(--text-muted);
+            font-size: 10px;
+            transition: transform 0.2s;
+        }
+
+        .model-selector.open .model-chevron {
+            transform: rotate(180deg);
+        }
+
+        /* Dropdown */
+        .model-dropdown {
+            position: absolute;
+            top: calc(100% + 8px);
+            left: 0;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 8px;
+            min-width: 240px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.2s;
+            z-index: 100;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+        }
+
+        .model-selector.open .model-dropdown {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .model-option {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+
+        .model-option:hover {
+            background: var(--bg-hover);
+        }
+
+        .model-option.selected {
+            background: var(--bg-hover);
+        }
+
+        .model-option-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        .model-option-info {
+            flex: 1;
+        }
+
+        .model-option-name {
+            font-weight: 500;
+            font-size: 0.95rem;
             color: var(--text-primary);
         }
 
-        .header h1 span {
+        .model-option-desc {
+            font-size: 0.8rem;
             color: var(--text-muted);
-            font-weight: 400;
+            margin-top: 2px;
         }
 
-        .chevron {
+        .model-option-check {
             color: var(--text-muted);
-            font-size: 12px;
+            opacity: 0;
         }
 
+        .model-option.selected .model-option-check {
+            opacity: 1;
+            color: var(--text-primary);
+        }
+
+        .model-option.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .model-option.disabled:hover {
+            background: transparent;
+        }
+
+        /* Header Right */
         .header-right {
             display: flex;
             align-items: center;
-            gap: 16px;
+            gap: 8px;
         }
 
         .header-btn {
@@ -75,15 +185,18 @@
             border: none;
             color: var(--text-secondary);
             cursor: pointer;
-            padding: 8px;
+            padding: 8px 12px;
+            border-radius: 8px;
             display: flex;
             align-items: center;
             gap: 6px;
             font-size: 0.875rem;
             font-family: inherit;
+            transition: background 0.2s;
         }
 
         .header-btn:hover {
+            background: var(--bg-secondary);
             color: var(--text-primary);
         }
 
@@ -161,6 +274,21 @@
             max-width: 200px;
             margin-bottom: 0;
             margin-top: 8px;
+        }
+
+        /* Provider Badge */
+        .provider-badge {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .provider-badge-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
         }
 
         /* Message Actions */
@@ -250,9 +378,12 @@
             align-items: center;
             justify-content: center;
             margin-left: -8px;
+            border-radius: 50%;
+            transition: background 0.2s;
         }
 
         .attach-btn:hover {
+            background: var(--bg-hover);
             color: var(--text-secondary);
         }
 
@@ -286,27 +417,6 @@
             display: flex;
             align-items: center;
             gap: 4px;
-        }
-
-        .mic-btn {
-            background: none;
-            border: none;
-            color: var(--text-muted);
-            cursor: pointer;
-            padding: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-        }
-
-        .mic-btn:hover {
-            color: var(--text-secondary);
-        }
-
-        .mic-btn svg {
-            width: 20px;
-            height: 20px;
         }
 
         .send-btn {
@@ -408,10 +518,40 @@
 </head>
 <body>
     <header class="header">
-        <div class="header-left">
-            <h1>AI Chat <span>5.1</span></h1>
-            <span class="chevron">▾</span>
+        <div class="model-selector" id="modelSelector">
+            <button class="model-selector-btn" onclick="toggleModelDropdown()">
+                <span class="model-indicator" id="modelIndicator"></span>
+                <span id="selectedModelName">GPT-5 Nano</span>
+                <span class="model-chevron">▼</span>
+            </button>
+            <div class="model-dropdown" id="modelDropdown">
+                <div class="model-option selected" data-provider="openai" onclick="selectModel('openai', 'GPT-5 Nano')">
+                    <span class="model-option-indicator" style="background: var(--openai)"></span>
+                    <div class="model-option-info">
+                        <div class="model-option-name">GPT-5 Nano</div>
+                        <div class="model-option-desc">OpenAI • Fast & efficient</div>
+                    </div>
+                    <span class="model-option-check">✓</span>
+                </div>
+                <div class="model-option" data-provider="gemini" onclick="selectModel('gemini', 'Gemini 2.0 Flash')">
+                    <span class="model-option-indicator" style="background: var(--gemini)"></span>
+                    <div class="model-option-info">
+                        <div class="model-option-name">Gemini 2.0 Flash</div>
+                        <div class="model-option-desc">Google • Multimodal</div>
+                    </div>
+                    <span class="model-option-check">✓</span>
+                </div>
+                <div class="model-option" data-provider="grok" onclick="selectModel('grok', 'Grok Beta')">
+                    <span class="model-option-indicator" style="background: var(--grok)"></span>
+                    <div class="model-option-info">
+                        <div class="model-option-name">Grok Beta</div>
+                        <div class="model-option-desc">xAI • Real-time knowledge</div>
+                    </div>
+                    <span class="model-option-check">✓</span>
+                </div>
+            </div>
         </div>
+
         <div class="header-right">
             <button class="header-btn">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -419,16 +559,11 @@
                 </svg>
                 Share
             </button>
-            <button class="header-btn">
+            <button class="header-btn" onclick="clearChat()">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                 </svg>
-                Add people
-            </button>
-            <button class="header-btn">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h.01M12 12h.01M19 12h.01M6 12a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0z" />
-                </svg>
+                New
             </button>
         </div>
     </header>
@@ -438,7 +573,7 @@
             <div class="welcome" id="welcome">
                 <div class="welcome-content">
                     <h2>How can I help you today?</h2>
-                    <p>Ask anything or attach an image for analysis</p>
+                    <p>Select an AI model above, then ask anything</p>
                 </div>
             </div>
         </div>
@@ -461,11 +596,6 @@
                     rows="1"
                 ></textarea>
                 <div class="input-actions">
-                    <button class="mic-btn" title="Voice input">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
-                        </svg>
-                    </button>
                     <button class="send-btn" id="sendBtn" onclick="sendMessage()" title="Send">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
                             <path d="M3.478 2.405a.75.75 0 00-.926.94l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.405z" />
@@ -482,16 +612,60 @@
     </footer>
 
     <script>
+        // State
         let attachedImage = null;
         let isLoading = false;
         let conversationHistory = [];
+        let selectedProvider = 'openai';
 
+        // Provider colors
+        const providerColors = {
+            openai: 'var(--openai)',
+            gemini: 'var(--gemini)',
+            grok: 'var(--grok)'
+        };
+
+        // DOM Elements
         const messagesContainer = document.getElementById('messages');
         const messageInput = document.getElementById('messageInput');
         const sendBtn = document.getElementById('sendBtn');
         const imagePreview = document.getElementById('imagePreview');
         const previewImg = document.getElementById('previewImg');
         const welcome = document.getElementById('welcome');
+        const modelSelector = document.getElementById('modelSelector');
+        const modelIndicator = document.getElementById('modelIndicator');
+        const selectedModelName = document.getElementById('selectedModelName');
+
+        // Model Selector
+        function toggleModelDropdown() {
+            modelSelector.classList.toggle('open');
+        }
+
+        function selectModel(provider, name) {
+            selectedProvider = provider;
+            selectedModelName.textContent = name;
+            modelIndicator.style.background = providerColors[provider];
+            
+            // Update selected state
+            document.querySelectorAll('.model-option').forEach(opt => {
+                opt.classList.remove('selected');
+                if (opt.dataset.provider === provider) {
+                    opt.classList.add('selected');
+                }
+            });
+            
+            // Clear conversation when switching models
+            conversationHistory = [];
+            
+            modelSelector.classList.remove('open');
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!modelSelector.contains(e.target)) {
+                modelSelector.classList.remove('open');
+            }
+        });
 
         // Auto-resize textarea
         messageInput.addEventListener('input', function() {
@@ -526,8 +700,21 @@
             document.getElementById('imageInput').value = '';
         }
 
-        function addMessage(role, content, imageData = null) {
-            if (welcome) welcome.style.display = 'none';
+        function clearChat() {
+            conversationHistory = [];
+            messagesContainer.innerHTML = `
+                <div class="welcome" id="welcome">
+                    <div class="welcome-content">
+                        <h2>How can I help you today?</h2>
+                        <p>Select an AI model above, then ask anything</p>
+                    </div>
+                </div>
+            `;
+        }
+
+        function addMessage(role, content, imageData = null, provider = null) {
+            const welcomeEl = document.getElementById('welcome');
+            if (welcomeEl) welcomeEl.style.display = 'none';
 
             const messageDiv = document.createElement('div');
             messageDiv.className = `message ${role}`;
@@ -537,6 +724,13 @@
                 contentHtml = `<img src="data:image/jpeg;base64,${imageData}" alt="Image">`;
             }
             contentHtml += formatContent(content);
+
+            const providerBadge = role === 'assistant' && provider ? `
+                <div class="provider-badge">
+                    <span class="provider-badge-dot" style="background: ${providerColors[provider] || providerColors.openai}"></span>
+                    ${provider.charAt(0).toUpperCase() + provider.slice(1)}
+                </div>
+            ` : '';
 
             const actionsHtml = role === 'assistant' ? `
                 <div class="message-actions">
@@ -555,15 +749,11 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14H5.236a2 2 0 01-1.789-2.894l3.5-7A2 2 0 018.736 3h4.018a2 2 0 01.485.06l3.76.94m-7 10v5a2 2 0 002 2h.096c.5 0 .905-.405.905-.904 0-.715.211-1.413.608-2.008L17 13V4m-7 10h2m5-10h2a2 2 0 012 2v6a2 2 0 01-2 2h-2.5" />
                         </svg>
                     </button>
-                    <button class="action-btn" title="Regenerate">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                        </svg>
-                    </button>
                 </div>
             ` : '';
 
             messageDiv.innerHTML = `
+                ${providerBadge}
                 <div class="message-content" data-content="${escapeAttr(content)}">${contentHtml}</div>
                 ${actionsHtml}
             `;
@@ -573,9 +763,7 @@
         }
 
         function formatContent(text) {
-            // Bold text between **
             text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-            // Convert newlines to <br>
             text = text.replace(/\n/g, '<br>');
             return text;
         }
@@ -594,6 +782,10 @@
             typingDiv.className = 'message assistant';
             typingDiv.id = 'typingIndicator';
             typingDiv.innerHTML = `
+                <div class="provider-badge">
+                    <span class="provider-badge-dot" style="background: ${providerColors[selectedProvider]}"></span>
+                    ${selectedProvider.charAt(0).toUpperCase() + selectedProvider.slice(1)}
+                </div>
                 <div class="message-content">
                     <div class="typing-indicator">
                         <span></span><span></span><span></span>
@@ -621,6 +813,7 @@
 
             const currentImage = attachedImage;
             const currentMessage = message || 'What do you see in this image?';
+            const currentProvider = selectedProvider;
 
             messageInput.value = '';
             messageInput.style.height = 'auto';
@@ -637,7 +830,8 @@
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
                             image: currentImage,
-                            prompt: currentMessage
+                            prompt: currentMessage,
+                            provider: currentProvider
                         })
                     });
                 } else {
@@ -646,7 +840,10 @@
                     response = await fetch('/api/message', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ messages: conversationHistory })
+                        body: JSON.stringify({ 
+                            messages: conversationHistory,
+                            provider: currentProvider
+                        })
                     });
                 }
 
@@ -654,7 +851,7 @@
                 removeTypingIndicator();
 
                 if (data.success && data.content) {
-                    addMessage('assistant', data.content);
+                    addMessage('assistant', data.content, null, data.provider || currentProvider);
                     if (!currentImage) {
                         conversationHistory.push({ role: 'assistant', content: data.content });
                     }
@@ -664,7 +861,7 @@
 
             } catch (error) {
                 removeTypingIndicator();
-                addMessage('assistant', `Sorry, something went wrong: ${error.message}`);
+                addMessage('assistant', `Sorry, something went wrong: ${error.message}`, null, currentProvider);
             } finally {
                 isLoading = false;
                 sendBtn.disabled = false;

@@ -14,6 +14,7 @@ module.exports = {
     providers: {
         openai: {
             name: 'OpenAI',
+            displayName: 'GPT-5 Nano',
             baseUrl: 'https://api.openai.com/v1',
             apiKey: process.env.OPENAI_API_KEY,
             endpoints: {
@@ -21,6 +22,7 @@ module.exports = {
                 imageGeneration: '/images/generations'
             },
             models: {
+                chat: 'gpt-5-nano',
                 vision: 'gpt-5-nano',
                 imageGeneration: 'gpt-image-1'
             },
@@ -29,40 +31,37 @@ module.exports = {
             }
         },
         
-        // Future providers - just add configuration here
         gemini: {
             name: 'Gemini',
+            displayName: 'Gemini 2.0 Flash',
             baseUrl: 'https://generativelanguage.googleapis.com/v1beta',
             apiKey: process.env.GEMINI_API_KEY,
             endpoints: {
-                chat: '/models/gemini-pro:generateContent'
+                chat: '/models/gemini-2.0-flash:generateContent'
             },
             models: {
-                vision: 'gemini-pro-vision'
+                chat: 'gemini-2.0-flash',
+                vision: 'gemini-2.0-flash'
+            },
+            defaults: {
+                maxCompletionTokens: 4096
             }
         },
         
         grok: {
             name: 'Grok',
+            displayName: 'Grok Beta',
             baseUrl: 'https://api.x.ai/v1',
             apiKey: process.env.GROK_API_KEY,
             endpoints: {
                 chat: '/chat/completions'
             },
             models: {
+                chat: 'grok-beta',
                 vision: 'grok-vision-beta'
-            }
-        },
-        
-        deepseek: {
-            name: 'DeepSeek',
-            baseUrl: 'https://api.deepseek.com/v1',
-            apiKey: process.env.DEEPSEEK_API_KEY,
-            endpoints: {
-                chat: '/chat/completions'
             },
-            models: {
-                vision: 'deepseek-vl'
+            defaults: {
+                maxCompletionTokens: 4096
             }
         }
     },
@@ -80,4 +79,3 @@ module.exports = {
         }
     }
 };
-
