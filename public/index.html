@@ -603,47 +603,11 @@
     <header class="header">
         <div class="model-selector" id="modelSelector">
             <button class="model-selector-btn" onclick="toggleModelDropdown()">
-                <span id="selectedModelName">OpenAI</span>
-                <span class="model-version" id="selectedModelVersion">5</span>
+                <span id="selectedModelName">Loading...</span>
                 <span class="model-chevron">▾</span>
             </button>
             <div class="model-dropdown" id="modelDropdown">
-                <div class="dropdown-section">
-                    <div class="dropdown-section-title">OpenAI</div>
-                    <div class="model-option selected" data-provider="openai" data-name="OpenAI" data-version="5" onclick="selectModel(this)">
-                        <div class="model-option-left">
-                            <div class="model-option-name">GPT-5 Nano</div>
-                            <div class="model-option-desc">Fast and efficient</div>
-                        </div>
-                        <span class="model-option-check">✓</span>
-                    </div>
-                </div>
-                
-                <div class="dropdown-divider"></div>
-                
-                <div class="dropdown-section">
-                    <div class="dropdown-section-title">Google</div>
-                    <div class="model-option" data-provider="gemini" data-name="Gemini" data-version="2.5" onclick="selectModel(this)">
-                        <div class="model-option-left">
-                            <div class="model-option-name">Gemini 2.5 Flash</div>
-                            <div class="model-option-desc">Multimodal reasoning</div>
-                        </div>
-                        <span class="model-option-check">✓</span>
-                    </div>
-                </div>
-                
-                <div class="dropdown-divider"></div>
-                
-                <div class="dropdown-section">
-                    <div class="dropdown-section-title">xAI</div>
-                    <div class="model-option" data-provider="grok" data-name="Grok" data-version="4.1" onclick="selectModel(this)">
-                        <div class="model-option-left">
-                            <div class="model-option-name">Grok 4.1</div>
-                            <div class="model-option-desc">Fast</div>
-                        </div>
-                        <span class="model-option-check">✓</span>
-                    </div>
-                </div>
+                <!-- Dynamically populated -->
             </div>
         </div>
 
@@ -727,7 +691,9 @@
         let attachedImage = null;
         let isLoading = false;
         let conversationHistory = [];
-        let selectedProvider = 'openai';
+        let providers = [];
+        let selectedProvider = null;
+        let selectedModel = null;
 
         // DOM Elements
         const messagesContainer = document.getElementById('messages');
@@ -736,10 +702,59 @@
         const imagePreview = document.getElementById('imagePreview');
         const previewImg = document.getElementById('previewImg');
         const modelSelector = document.getElementById('modelSelector');
+        const modelDropdown = document.getElementById('modelDropdown');
         const selectedModelName = document.getElementById('selectedModelName');
-        const selectedModelVersion = document.getElementById('selectedModelVersion');
         const toast = document.getElementById('toast');
         const shareModal = document.getElementById('shareModal');
+
+        // Fetch providers from API on load
+        async function fetchProviders() {
+            try {
+                const response = await fetch('/api/models');
+                const data = await response.json();
+                if (data.success && data.providers) {
+                    providers = data.providers;
+                    renderProviderDropdown();
+                    // Auto-select first model of first provider
+                    if (providers.length > 0) {
+                        const firstProvider = providers[0];
+                        const firstModel = firstProvider.models[0];
+                        if (firstModel) {
+                            selectModel(firstProvider.id, firstModel.id, firstModel.displayName);
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Failed to fetch providers:', error);
+                selectedModelName.textContent = 'Error loading';
+            }
+        }
+
+        function renderProviderDropdown() {
+            let html = '';
+            providers.forEach((provider, index) => {
+                if (index > 0) {
+                    html += '<div class="dropdown-divider"></div>';
+                }
+                html += `
+                    <div class="dropdown-section">
+                        <div class="dropdown-section-title">${provider.name}</div>
+                        ${provider.models.map(model => `
+                            <div class="model-option ${selectedModel === model.id ? 'selected' : ''}" 
+                                 data-provider="${provider.id}" 
+                                 data-model="${model.id}"
+                                 onclick="selectModel('${provider.id}', '${model.id}', '${model.displayName}')">
+                                <div class="model-option-left">
+                                    <div class="model-option-name">${model.displayName}</div>
+                                </div>
+                                <span class="model-option-check">✓</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            });
+            modelDropdown.innerHTML = html;
+        }
 
         // Toast
         function showToast(message) {
@@ -753,27 +768,23 @@
             modelSelector.classList.toggle('open');
         }
 
-        function selectModel(element) {
-            const provider = element.dataset.provider;
-            const name = element.dataset.name;
-            const version = element.dataset.version;
+        function selectModel(providerId, modelId, displayName) {
+            selectedProvider = providerId;
+            selectedModel = modelId;
+            selectedModelName.textContent = displayName;
             
-            selectedProvider = provider;
-            selectedModelName.textContent = name;
-            selectedModelVersion.textContent = version;
-            
-            // Update selected state
+            // Update selected state visually
             document.querySelectorAll('.model-option').forEach(opt => {
-                opt.classList.remove('selected');
+                opt.classList.toggle('selected', opt.dataset.model === modelId);
             });
-            element.classList.add('selected');
             
             modelSelector.classList.remove('open');
-            
-            // Start new chat when model changes
             clearChat();
-            showToast(`Switched to ${name}`);
+            showToast(`Switched to ${displayName}`);
         }
+
+        // Initialize
+        fetchProviders();
 
         // Close dropdown when clicking outside
         document.addEventListener('click', (e) => {
@@ -957,6 +968,7 @@
             const currentImage = attachedImage;
             const currentMessage = message || 'What do you see in this image?';
             const currentProvider = selectedProvider;
+            const currentModel = selectedModel;
 
             messageInput.value = '';
             messageInput.style.height = 'auto';
