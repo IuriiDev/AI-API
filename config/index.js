@@ -20,6 +20,13 @@ module.exports = {
                 chat: '/chat/completions',
                 imageGeneration: '/images/generations'
             },
+            // Models used for API requests
+            models: {
+                chat: 'gpt-5-nano',
+                vision: 'gpt-5-nano',
+                imageGeneration: 'gpt-image-1'
+            },
+            // Models shown in UI dropdown
             availableModels: [
                 { id: 'gpt-5.2', displayName: 'ChatGPT 5.2', description: 'Most capable' },
                 { id: 'gpt-5-mini', displayName: 'ChatGPT 5 Mini', description: 'Balanced' },
@@ -38,6 +45,10 @@ module.exports = {
             endpoints: {
                 chat: '/models/{model}:generateContent'
             },
+            models: {
+                chat: 'gemini-2.5-flash',
+                vision: 'gemini-2.5-flash'
+            },
             availableModels: [
                 { id: 'gemini-2.5-flash', displayName: 'Gemini 2.5 Flash', description: 'Multimodal reasoning' }
             ],
@@ -53,6 +64,10 @@ module.exports = {
             apiKey: process.env.GROK_API_KEY,
             endpoints: {
                 chat: '/chat/completions'
+            },
+            models: {
+                chat: 'grok-4-1-fast-non-reasoning',
+                vision: 'grok-4-1-fast-non-reasoning'
             },
             availableModels: [
                 { id: 'grok-4-1-fast', displayName: 'Grok 4.1 Fast', description: '2M context window' }
@@ -77,4 +92,5 @@ module.exports = {
         }
     }
 };
+
 
