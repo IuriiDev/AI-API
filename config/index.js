@@ -13,59 +13,52 @@ module.exports = {
     // AI Providers Configuration
     providers: {
         openai: {
-            name: 'OpenAI',
-            displayName: 'GPT-5 Nano',
+            name: 'ChatGPT',
             baseUrl: 'https://api.openai.com/v1',
             apiKey: process.env.OPENAI_API_KEY,
             endpoints: {
                 chat: '/chat/completions',
                 imageGeneration: '/images/generations'
             },
-            models: {
-                chat: 'gpt-5-nano',
-                vision: 'gpt-5-nano',
-                imageGeneration: 'gpt-image-1'
-            },
+            availableModels: [
+                { id: 'gpt-5.2', displayName: 'ChatGPT 5.2' },
+                { id: 'gpt-5-mini', displayName: 'ChatGPT 5 Mini' },
+                { id: 'gpt-5-nano', displayName: 'ChatGPT 5 Nano' }
+            ],
+            defaultModel: 'gpt-5-nano',
             defaults: {
                 maxCompletionTokens: 4096
             }
         },
-        
+
         gemini: {
             name: 'Gemini',
-            displayName: 'Gemini 2.5 Flash',
             baseUrl: 'https://generativelanguage.googleapis.com/v1beta',
             apiKey: process.env.GEMINI_API_KEY,
             endpoints: {
-                // Gemini uses model name in URL path
-                chat: '/models/gemini-2.5-flash:generateContent'
+                chat: '/models/{model}:generateContent'
             },
-            models: {
-                chat: 'gemini-2.5-flash',
-                vision: 'gemini-2.5-flash'
-            },
+            availableModels: [
+                { id: 'gemini-2.5-flash', displayName: 'Gemini 2.5 Flash' }
+            ],
+            defaultModel: 'gemini-2.5-flash',
             defaults: {
-                // Gemini uses maxOutputTokens in generationConfig
                 maxOutputTokens: 8192
             }
         },
-        
+
         grok: {
             name: 'Grok',
-            displayName: 'Grok 4.1 Fast',
             baseUrl: 'https://api.x.ai/v1',
             apiKey: process.env.GROK_API_KEY,
             endpoints: {
-                // OpenAI-compatible endpoint
                 chat: '/chat/completions'
             },
-            models: {
-                // Best value: 2M context, $0.20/$0.50 per 1M tokens, supports vision
-                chat: 'grok-4-1-fast-non-reasoning',
-                vision: 'grok-4-1-fast-non-reasoning'
-            },
+            availableModels: [
+                { id: 'grok-4-1-fast', displayName: 'Grok 4.1 Fast' }
+            ],
+            defaultModel: 'grok-4-1-fast',
             defaults: {
-                // xAI uses max_tokens (not max_completion_tokens)
                 maxTokens: 4096
             }
         }

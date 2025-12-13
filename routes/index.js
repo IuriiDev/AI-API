@@ -56,12 +56,12 @@ router.get('/providers', (req, res) => {
 });
 
 /**
- * Get available models with display names
+ * Get available models with display names (hierarchical)
  */
 router.get('/models', (req, res) => {
     res.json({
         success: true,
-        models: getConfiguredModels()
+        providers: getConfiguredModels()
     });
 });
 

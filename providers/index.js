@@ -92,15 +92,21 @@ function providerSupports(providerName, capability) {
 }
 
 /**
- * Get list of configured models with display info
+ * Get list of configured models with display info (hierarchical)
+ * Returns providers with their available models
  */
 function getConfiguredModels() {
-    return getConfiguredProviders().map(name => ({
-        id: name,
-        name: config.providers[name].name,
-        displayName: config.providers[name].displayName
-    }));
+    return getConfiguredProviders().map(providerId => {
+        const providerConfig = config.providers[providerId];
+        return {
+            id: providerId,
+            name: providerConfig.name,
+            models: providerConfig.availableModels || [],
+            defaultModel: providerConfig.defaultModel
+        };
+    });
 }
+
 
 module.exports = {
     getProvider,
