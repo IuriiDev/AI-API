@@ -21,9 +21,9 @@ module.exports = {
                 imageGeneration: '/images/generations'
             },
             availableModels: [
-                { id: 'gpt-5.2', displayName: 'ChatGPT 5.2' },
-                { id: 'gpt-5-mini', displayName: 'ChatGPT 5 Mini' },
-                { id: 'gpt-5-nano', displayName: 'ChatGPT 5 Nano' }
+                { id: 'gpt-5.2', displayName: 'ChatGPT 5.2', description: 'Most capable' },
+                { id: 'gpt-5-mini', displayName: 'ChatGPT 5 Mini', description: 'Balanced' },
+                { id: 'gpt-5-nano', displayName: 'ChatGPT 5 Nano', description: 'Fast & efficient' }
             ],
             defaultModel: 'gpt-5-nano',
             defaults: {
@@ -39,7 +39,7 @@ module.exports = {
                 chat: '/models/{model}:generateContent'
             },
             availableModels: [
-                { id: 'gemini-2.5-flash', displayName: 'Gemini 2.5 Flash' }
+                { id: 'gemini-2.5-flash', displayName: 'Gemini 2.5 Flash', description: 'Multimodal reasoning' }
             ],
             defaultModel: 'gemini-2.5-flash',
             defaults: {
@@ -55,7 +55,7 @@ module.exports = {
                 chat: '/chat/completions'
             },
             availableModels: [
-                { id: 'grok-4-1-fast', displayName: 'Grok 4.1 Fast' }
+                { id: 'grok-4-1-fast', displayName: 'Grok 4.1 Fast', description: '2M context window' }
             ],
             defaultModel: 'grok-4-1-fast',
             defaults: {
@@ -77,3 +77,4 @@ module.exports = {
         }
     }
 };
+

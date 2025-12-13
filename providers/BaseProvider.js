@@ -8,11 +8,14 @@
  */
 
 class BaseProvider {
+    // Shared constants to eliminate duplication (DRY)
+    static BASE64_IMAGE_PREFIX = 'data:image/jpeg;base64,';
+
     constructor(config) {
         if (new.target === BaseProvider) {
             throw new Error('BaseProvider is abstract and cannot be instantiated directly');
         }
-        
+
         this.name = config.name;
         this.baseUrl = config.baseUrl;
         this.apiKey = config.apiKey;
@@ -37,6 +40,14 @@ class BaseProvider {
      */
     buildUrl(endpoint) {
         return `${this.baseUrl}${endpoint}`;
+    }
+
+    /**
+     * Create base64 image URL from raw base64 data
+     * Centralizes image URL formatting (DRY)
+     */
+    getBase64ImageUrl(base64Data) {
+        return `${BaseProvider.BASE64_IMAGE_PREFIX}${base64Data}`;
     }
 
     /**
@@ -84,4 +95,5 @@ class BaseProvider {
 }
 
 module.exports = BaseProvider;
+
 

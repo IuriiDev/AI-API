@@ -26,15 +26,15 @@ class OpenAIProvider extends BaseProvider {
      */
     async chat({ messages, model, maxCompletionTokens }) {
         const url = this.buildUrl(this.endpoints.chat);
-        
+
         const payload = {
             model: model || this.models.vision,
             messages,
             max_completion_tokens: maxCompletionTokens || this.defaults.maxCompletionTokens
         };
 
-        const response = await axios.post(url, payload, { 
-            headers: this.getHeaders() 
+        const response = await axios.post(url, payload, {
+            headers: this.getHeaders()
         });
 
         return this.formatChatResponse(response.data);
@@ -45,7 +45,7 @@ class OpenAIProvider extends BaseProvider {
      */
     async analyzeImage({ image, prompt, maxCompletionTokens }) {
         const url = this.buildUrl(this.endpoints.chat);
-        
+
         const payload = {
             model: this.models.vision,
             messages: [
@@ -53,11 +53,11 @@ class OpenAIProvider extends BaseProvider {
                     role: 'user',
                     content: [
                         { type: 'text', text: prompt },
-                        { 
-                            type: 'image_url', 
-                            image_url: { 
-                                url: `data:image/jpeg;base64,${image}` 
-                            } 
+                        {
+                            type: 'image_url',
+                            image_url: {
+                                url: this.getBase64ImageUrl(image)
+                            }
                         }
                     ]
                 }
@@ -65,8 +65,8 @@ class OpenAIProvider extends BaseProvider {
             max_completion_tokens: maxCompletionTokens || this.defaults.maxCompletionTokens
         };
 
-        const response = await axios.post(url, payload, { 
-            headers: this.getHeaders() 
+        const response = await axios.post(url, payload, {
+            headers: this.getHeaders()
         });
 
         return this.formatChatResponse(response.data);
@@ -77,7 +77,7 @@ class OpenAIProvider extends BaseProvider {
      */
     async generateImage({ prompt, size, quality, outputFormat, count }) {
         const url = this.buildUrl(this.endpoints.imageGeneration);
-        
+
         const payload = {
             model: this.models.imageGeneration,
             prompt: prompt.trim(),
@@ -87,8 +87,8 @@ class OpenAIProvider extends BaseProvider {
             output_format: outputFormat || 'png'
         };
 
-        const response = await axios.post(url, payload, { 
-            headers: this.getHeaders() 
+        const response = await axios.post(url, payload, {
+            headers: this.getHeaders()
         });
 
         return this.formatImageResponse(response.data);
@@ -114,7 +114,7 @@ class OpenAIProvider extends BaseProvider {
      */
     formatImageResponse(data) {
         const images = data.data?.map(item => item.b64_json) || [];
-        
+
         return {
             provider: this.name,
             images,

@@ -2,10 +2,9 @@
  * AI API Gateway Server
  * 
  * Multi-provider AI API supporting:
- * - OpenAI (GPT-5-nano, gpt-image-1)
- * - Gemini (future)
- * - Grok (future)
- * - DeepSeek (future)
+ * - OpenAI (ChatGPT 5.2, 5 Mini, 5 Nano)
+ * - Gemini (2.5 Flash)
+ * - Grok (4.1 Fast)
  * 
  * Architecture: SOLID principles with Strategy/Factory pattern
  */
@@ -57,12 +56,10 @@ app.listen(PORT, () => {
     console.log(`   Port: ${PORT}`);
     console.log(`   Environment: ${process.env.NODE_ENV || 'development'}`);
     console.log('');
-    console.log('🌐 Frontend:');
-    console.log(`   http://localhost:${PORT}`);
-    console.log('');
     console.log('📡 API Endpoints:');
     console.log('   GET  /api              - API info & health');
     console.log('   GET  /api/providers    - List providers');
+    console.log('   GET  /api/models       - List models');
     console.log('   POST /api/message      - Chat completion');
     console.log('   POST /api/analyze-image - Image analysis');
     console.log('   POST /api/generate-image - Image generation');
@@ -71,3 +68,4 @@ app.listen(PORT, () => {
 });
 
 module.exports = app;
+

@@ -28,15 +28,15 @@ class GrokProvider extends BaseProvider {
      */
     async chat({ messages, model, maxTokens }) {
         const url = this.buildUrl(this.endpoints.chat);
-        
+
         const payload = {
             model: model || this.models.chat,
             messages,
             max_tokens: maxTokens || this.defaults.maxTokens
         };
 
-        const response = await axios.post(url, payload, { 
-            headers: this.getHeaders() 
+        const response = await axios.post(url, payload, {
+            headers: this.getHeaders()
         });
 
         return this.formatChatResponse(response.data);
@@ -47,7 +47,7 @@ class GrokProvider extends BaseProvider {
      */
     async analyzeImage({ image, prompt, maxTokens }) {
         const url = this.buildUrl(this.endpoints.chat);
-        
+
         const payload = {
             model: this.models.vision,
             messages: [
@@ -55,11 +55,11 @@ class GrokProvider extends BaseProvider {
                     role: 'user',
                     content: [
                         { type: 'text', text: prompt },
-                        { 
-                            type: 'image_url', 
-                            image_url: { 
-                                url: `data:image/jpeg;base64,${image}` 
-                            } 
+                        {
+                            type: 'image_url',
+                            image_url: {
+                                url: this.getBase64ImageUrl(image)
+                            }
                         }
                     ]
                 }
@@ -67,8 +67,8 @@ class GrokProvider extends BaseProvider {
             max_tokens: maxTokens || this.defaults.maxTokens
         };
 
-        const response = await axios.post(url, payload, { 
-            headers: this.getHeaders() 
+        const response = await axios.post(url, payload, {
+            headers: this.getHeaders()
         });
 
         return this.formatChatResponse(response.data);
