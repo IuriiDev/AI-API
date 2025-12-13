@@ -9,12 +9,12 @@
  * - Image generation (gpt-image-1)
  */
 
-const axios = require('axios');
 const BaseProvider = require('./BaseProvider');
+const config = require('../config');
 
 class OpenAIProvider extends BaseProvider {
-    constructor(config) {
-        super(config);
+    constructor(providerConfig) {
+        super(providerConfig);
     }
 
     getCapabilities() {
@@ -39,11 +39,81 @@ class OpenAIProvider extends BaseProvider {
             max_completion_tokens: maxCompletionTokens || this.defaults.maxCompletionTokens
         };
 
-        const response = await axios.post(url, payload, {
-            headers: this.getHeaders()
+        const response = await this.request(url, payload, {
+            timeout: config.http.timeouts.chat
         });
 
         return this.formatChatResponse(response.data);
+    }
+
+    /**
+     * Streaming chat completion using SSE
+     * OpenAI returns: data: {"choices":[{"delta":{"content":"text"}}]}
+     */
+    async chatStream({ messages, model, maxCompletionTokens, image, onChunk, onComplete, onError }) {
+        const url = this.buildUrl(this.endpoints.chat);
+
+        let formattedMessages = messages;
+        if (image) {
+            formattedMessages = this.formatMessagesWithImage(messages, image);
+        }
+
+        const payload = {
+            model: image ? this.models.vision : (model || this.models.vision),
+            messages: formattedMessages,
+            max_completion_tokens: maxCompletionTokens || this.defaults.maxCompletionTokens,
+            stream: true
+        };
+
+        try {
+            const response = await this.httpClient.post(url, payload, {
+                headers: this.getHeaders(),
+                responseType: 'stream'
+            });
+
+            let fullContent = '';
+            let buffer = '';
+
+            response.data.on('data', (chunk) => {
+                buffer += chunk.toString();
+
+                // Process complete SSE lines
+                const lines = buffer.split('\n');
+                buffer = lines.pop() || ''; // Keep incomplete line in buffer
+
+                for (const line of lines) {
+                    if (line.startsWith('data: ')) {
+                        const data = line.slice(6);
+
+                        if (data === '[DONE]') {
+                            continue;
+                        }
+
+                        try {
+                            const parsed = JSON.parse(data);
+                            const content = parsed.choices?.[0]?.delta?.content;
+
+                            if (content) {
+                                fullContent += content;
+                                onChunk(content);
+                            }
+                        } catch (e) {
+                            // Skip malformed JSON chunks
+                        }
+                    }
+                }
+            });
+
+            response.data.on('end', () => {
+                onComplete(fullContent);
+            });
+
+            response.data.on('error', (error) => {
+                onError(error);
+            });
+        } catch (error) {
+            onError(error);
+        }
     }
 
     /**
@@ -100,8 +170,8 @@ class OpenAIProvider extends BaseProvider {
             max_completion_tokens: maxCompletionTokens || this.defaults.maxCompletionTokens
         };
 
-        const response = await axios.post(url, payload, {
-            headers: this.getHeaders()
+        const response = await this.request(url, payload, {
+            timeout: config.http.timeouts.chat
         });
 
         return this.formatChatResponse(response.data);
@@ -122,8 +192,8 @@ class OpenAIProvider extends BaseProvider {
             output_format: outputFormat || 'png'
         };
 
-        const response = await axios.post(url, payload, {
-            headers: this.getHeaders()
+        const response = await this.request(url, payload, {
+            timeout: config.http.timeouts.imageGeneration
         });
 
         return this.formatImageResponse(response.data);
@@ -161,4 +231,3 @@ class OpenAIProvider extends BaseProvider {
 }
 
 module.exports = OpenAIProvider;
-

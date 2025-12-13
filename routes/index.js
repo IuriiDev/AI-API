@@ -9,7 +9,7 @@ const express = require('express');
 const router = express.Router();
 
 // Controllers
-const { handleChat } = require('../controllers/chatController');
+const { handleChat, handleStreamChat } = require('../controllers/chatController');
 const { handleImageAnalysis } = require('../controllers/imageAnalysisController');
 const { handleImageGeneration } = require('../controllers/imageGenerationController');
 
@@ -37,6 +37,7 @@ router.get('/', (req, res) => {
         configuredProviders: getConfiguredProviders(),
         endpoints: {
             chat: 'POST /api/message',
+            chatStream: 'POST /api/message/stream',
             imageAnalysis: 'POST /api/analyze-image',
             imageGeneration: 'POST /api/generate-image',
             providers: 'GET /api/providers'
@@ -66,13 +67,23 @@ router.get('/models', (req, res) => {
 });
 
 /**
- * Chat Completion
+ * Chat Completion (Standard)
  * POST /api/message
  */
 router.post('/message',
     validateProvider,
     validateChatRequest,
     asyncHandler(handleChat)
+);
+
+/**
+ * Chat Completion (Streaming SSE)
+ * POST /api/message/stream
+ */
+router.post('/message/stream',
+    validateProvider,
+    validateChatRequest,
+    handleStreamChat  // No asyncHandler - streaming handles its own errors
 );
 
 /**

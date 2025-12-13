@@ -11,12 +11,12 @@
  * Pricing: $3/1M input, $15/1M output tokens
  */
 
-const axios = require('axios');
 const BaseProvider = require('./BaseProvider');
+const config = require('../config');
 
 class GrokProvider extends BaseProvider {
-    constructor(config) {
-        super(config);
+    constructor(providerConfig) {
+        super(providerConfig);
     }
 
     getCapabilities() {
@@ -41,11 +41,80 @@ class GrokProvider extends BaseProvider {
             max_tokens: maxTokens || this.defaults.maxTokens
         };
 
-        const response = await axios.post(url, payload, {
-            headers: this.getHeaders()
+        const response = await this.request(url, payload, {
+            timeout: config.http.timeouts.chat
         });
 
         return this.formatChatResponse(response.data);
+    }
+
+    /**
+     * Streaming chat completion using SSE
+     * Grok uses OpenAI-compatible format: data: {"choices":[{"delta":{"content":"text"}}]}
+     */
+    async chatStream({ messages, model, maxTokens, image, onChunk, onComplete, onError }) {
+        const url = this.buildUrl(this.endpoints.chat);
+
+        let formattedMessages = messages;
+        if (image) {
+            formattedMessages = this.formatMessagesWithImage(messages, image);
+        }
+
+        const payload = {
+            model: image ? this.models.vision : (model || this.models.chat),
+            messages: formattedMessages,
+            max_tokens: maxTokens || this.defaults.maxTokens,
+            stream: true
+        };
+
+        try {
+            const response = await this.httpClient.post(url, payload, {
+                headers: this.getHeaders(),
+                responseType: 'stream'
+            });
+
+            let fullContent = '';
+            let buffer = '';
+
+            response.data.on('data', (chunk) => {
+                buffer += chunk.toString();
+
+                const lines = buffer.split('\n');
+                buffer = lines.pop() || '';
+
+                for (const line of lines) {
+                    if (line.startsWith('data: ')) {
+                        const data = line.slice(6);
+
+                        if (data === '[DONE]') {
+                            continue;
+                        }
+
+                        try {
+                            const parsed = JSON.parse(data);
+                            const content = parsed.choices?.[0]?.delta?.content;
+
+                            if (content) {
+                                fullContent += content;
+                                onChunk(content);
+                            }
+                        } catch (e) {
+                            // Skip malformed chunks
+                        }
+                    }
+                }
+            });
+
+            response.data.on('end', () => {
+                onComplete(fullContent);
+            });
+
+            response.data.on('error', (error) => {
+                onError(error);
+            });
+        } catch (error) {
+            onError(error);
+        }
     }
 
     /**
@@ -100,8 +169,8 @@ class GrokProvider extends BaseProvider {
             max_tokens: maxTokens || this.defaults.maxTokens
         };
 
-        const response = await axios.post(url, payload, {
-            headers: this.getHeaders()
+        const response = await this.request(url, payload, {
+            timeout: config.http.timeouts.chat
         });
 
         return this.formatChatResponse(response.data);
@@ -124,4 +193,3 @@ class GrokProvider extends BaseProvider {
 }
 
 module.exports = GrokProvider;
-
