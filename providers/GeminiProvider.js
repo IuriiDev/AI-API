@@ -43,15 +43,15 @@ class GeminiProvider extends BaseProvider {
     }
 
     /**
-     * Chat completion
+     * Chat completion (with optional vision support)
      */
-    async chat({ messages, model, maxCompletionTokens }) {
-        const modelName = model || this.models.chat;
+    async chat({ messages, model, maxCompletionTokens, image }) {
+        const modelName = image ? this.models.vision : (model || this.models.chat);
         const url = this.buildGeminiUrl(modelName);
-        
-        // Convert messages to Gemini format
-        const contents = this.convertToGeminiFormat(messages);
-        
+
+        // Convert messages to Gemini format (with optional image)
+        const contents = this.convertToGeminiFormat(messages, image);
+
         const payload = {
             contents,
             generationConfig: {
@@ -59,8 +59,8 @@ class GeminiProvider extends BaseProvider {
             }
         };
 
-        const response = await axios.post(url, payload, { 
-            headers: this.getHeaders() 
+        const response = await axios.post(url, payload, {
+            headers: this.getHeaders()
         });
 
         return this.formatChatResponse(response.data);
@@ -72,7 +72,7 @@ class GeminiProvider extends BaseProvider {
     async analyzeImage({ image, prompt, maxCompletionTokens }) {
         const modelName = this.models.vision;
         const url = this.buildGeminiUrl(modelName);
-        
+
         const payload = {
             contents: [
                 {
@@ -92,8 +92,8 @@ class GeminiProvider extends BaseProvider {
             }
         };
 
-        const response = await axios.post(url, payload, { 
-            headers: this.getHeaders() 
+        const response = await axios.post(url, payload, {
+            headers: this.getHeaders()
         });
 
         return this.formatChatResponse(response.data);
@@ -101,12 +101,30 @@ class GeminiProvider extends BaseProvider {
 
     /**
      * Convert OpenAI message format to Gemini format
+     * Optionally adds image as inline_data to last user message
      */
-    convertToGeminiFormat(messages) {
-        return messages.map(msg => ({
+    convertToGeminiFormat(messages, image) {
+        const contents = messages.map(msg => ({
             role: msg.role === 'assistant' ? 'model' : 'user',
             parts: [{ text: msg.content }]
         }));
+
+        // Add image to last user message if provided
+        if (image) {
+            for (let i = contents.length - 1; i >= 0; i--) {
+                if (contents[i].role === 'user') {
+                    contents[i].parts.push({
+                        inline_data: {
+                            mime_type: 'image/jpeg',
+                            data: image
+                        }
+                    });
+                    break;
+                }
+            }
+        }
+
+        return contents;
     }
 
     /**
@@ -114,7 +132,7 @@ class GeminiProvider extends BaseProvider {
      */
     formatChatResponse(data) {
         const content = data.candidates?.[0]?.content?.parts?.[0]?.text || null;
-        
+
         return {
             provider: this.name,
             id: null,

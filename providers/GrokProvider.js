@@ -24,14 +24,20 @@ class GrokProvider extends BaseProvider {
     }
 
     /**
-     * Chat completion
+     * Chat completion (with optional vision support)
      */
-    async chat({ messages, model, maxTokens }) {
+    async chat({ messages, model, maxTokens, image }) {
         const url = this.buildUrl(this.endpoints.chat);
 
+        // If image provided, transform last user message for vision
+        let formattedMessages = messages;
+        if (image) {
+            formattedMessages = this.formatMessagesWithImage(messages, image);
+        }
+
         const payload = {
-            model: model || this.models.chat,
-            messages,
+            model: image ? this.models.vision : (model || this.models.chat),
+            messages: formattedMessages,
             max_tokens: maxTokens || this.defaults.maxTokens
         };
 
@@ -40,6 +46,33 @@ class GrokProvider extends BaseProvider {
         });
 
         return this.formatChatResponse(response.data);
+    }
+
+    /**
+     * Format messages with image for vision
+     */
+    formatMessagesWithImage(messages, image) {
+        const formatted = [...messages];
+
+        for (let i = formatted.length - 1; i >= 0; i--) {
+            if (formatted[i].role === 'user') {
+                formatted[i] = {
+                    role: 'user',
+                    content: [
+                        { type: 'text', text: formatted[i].content },
+                        {
+                            type: 'image_url',
+                            image_url: {
+                                url: this.getBase64ImageUrl(image)
+                            }
+                        }
+                    ]
+                };
+                break;
+            }
+        }
+
+        return formatted;
     }
 
     /**

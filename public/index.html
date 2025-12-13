@@ -977,45 +977,44 @@
             addTypingIndicator();
 
             try {
-                let response;
+                // Add user message to history
+                conversationHistory.push({ role: 'user', content: currentMessage });
 
+                // Use unified /api/message endpoint for both text and image
+                const requestBody = { 
+                    messages: conversationHistory,
+                    provider: currentProvider
+                };
+
+                // Add image if attached
                 if (currentImage) {
-                    response = await fetch('/api/analyze-image', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            image: currentImage,
-                            prompt: currentMessage,
-                            provider: currentProvider
-                        })
-                    });
-                } else {
-                    conversationHistory.push({ role: 'user', content: currentMessage });
-
-                    response = await fetch('/api/message', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ 
-                            messages: conversationHistory,
-                            provider: currentProvider
-                        })
-                    });
+                    requestBody.image = currentImage;
                 }
+
+                const response = await fetch('/api/message', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(requestBody)
+                });
 
                 const data = await response.json();
                 removeTypingIndicator();
 
                 if (data.success && data.content) {
                     addMessage('assistant', data.content);
-                    if (!currentImage) {
-                        conversationHistory.push({ role: 'assistant', content: data.content });
-                    }
+                    conversationHistory.push({ role: 'assistant', content: data.content });
                 } else {
+                    // Remove failed message from history
+                    conversationHistory.pop();
                     throw new Error(data.message || data.error || 'Failed to get response');
                 }
 
             } catch (error) {
                 removeTypingIndicator();
+                // Remove failed message from history
+                if (conversationHistory.length > 0 && conversationHistory[conversationHistory.length - 1].role === 'user') {
+                    conversationHistory.pop();
+                }
                 addMessage('assistant', `Sorry, something went wrong: ${error.message}`);
             } finally {
                 isLoading = false;

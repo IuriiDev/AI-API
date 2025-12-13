@@ -15,23 +15,26 @@ const { getProvider } = require('../providers');
  * - model: (optional) Model to use
  * - maxCompletionTokens: (optional) Max tokens in response
  * - provider: (optional) AI provider to use (default: openai)
+ * - image: (optional) Base64 encoded image for vision chat
  */
 async function handleChat(req, res) {
-    const { 
-        messages, 
-        model, 
+    const {
+        messages,
+        model,
         maxCompletionTokens,
-        provider: providerName = 'openai' 
+        provider: providerName = 'openai',
+        image
     } = req.body;
 
     const provider = getProvider(providerName);
-    
+
     // Pass tokens parameter - providers handle naming internally
     const result = await provider.chat({
         messages,
         model,
         maxCompletionTokens,
-        maxTokens: maxCompletionTokens // For providers using max_tokens (Grok)
+        maxTokens: maxCompletionTokens, // For providers using max_tokens (Grok)
+        image // Pass image for vision-enabled chat
     });
 
     res.json({

@@ -22,14 +22,20 @@ class OpenAIProvider extends BaseProvider {
     }
 
     /**
-     * Chat completion
+     * Chat completion (with optional vision support)
      */
-    async chat({ messages, model, maxCompletionTokens }) {
+    async chat({ messages, model, maxCompletionTokens, image }) {
         const url = this.buildUrl(this.endpoints.chat);
 
+        // If image provided, transform last user message for vision
+        let formattedMessages = messages;
+        if (image) {
+            formattedMessages = this.formatMessagesWithImage(messages, image);
+        }
+
         const payload = {
-            model: model || this.models.vision,
-            messages,
+            model: image ? this.models.vision : (model || this.models.vision),
+            messages: formattedMessages,
             max_completion_tokens: maxCompletionTokens || this.defaults.maxCompletionTokens
         };
 
@@ -38,6 +44,35 @@ class OpenAIProvider extends BaseProvider {
         });
 
         return this.formatChatResponse(response.data);
+    }
+
+    /**
+     * Format messages with image for vision
+     * Converts last user message to multimodal content array
+     */
+    formatMessagesWithImage(messages, image) {
+        const formatted = [...messages];
+
+        // Find last user message
+        for (let i = formatted.length - 1; i >= 0; i--) {
+            if (formatted[i].role === 'user') {
+                formatted[i] = {
+                    role: 'user',
+                    content: [
+                        { type: 'text', text: formatted[i].content },
+                        {
+                            type: 'image_url',
+                            image_url: {
+                                url: this.getBase64ImageUrl(image)
+                            }
+                        }
+                    ]
+                };
+                break;
+            }
+        }
+
+        return formatted;
     }
 
     /**
