@@ -23,7 +23,7 @@ const {
 } = require('../middleware/validateRequest');
 
 // Provider info
-const { getAvailableProviders, getConfiguredProviders } = require('../providers');
+const { getAvailableProviders, getConfiguredProviders, getConfiguredModels } = require('../providers');
 
 /**
  * Health Check & Info
@@ -52,6 +52,16 @@ router.get('/providers', (req, res) => {
         success: true,
         available: getAvailableProviders(),
         configured: getConfiguredProviders()
+    });
+});
+
+/**
+ * Get available models with display names
+ */
+router.get('/models', (req, res) => {
+    res.json({
+        success: true,
+        models: getConfiguredModels()
     });
 });
 

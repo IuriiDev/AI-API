@@ -33,32 +33,32 @@ const providerInstances = {};
  */
 function getProvider(providerName = 'openai') {
     const name = providerName.toLowerCase();
-    
+
     // Return cached instance if exists
     if (providerInstances[name]) {
         return providerInstances[name];
     }
-    
+
     // Get provider class from registry
     const ProviderClass = providerRegistry[name];
     if (!ProviderClass) {
         throw new Error(`Unknown provider: ${providerName}. Available: ${getAvailableProviders().join(', ')}`);
     }
-    
+
     // Get provider config
     const providerConfig = config.providers[name];
     if (!providerConfig) {
         throw new Error(`Configuration not found for provider: ${providerName}`);
     }
-    
+
     // Check if API key is configured
     if (!providerConfig.apiKey) {
         throw new Error(`API key not configured for ${providerName}. Set ${name.toUpperCase()}_API_KEY environment variable.`);
     }
-    
+
     // Create and cache instance
     providerInstances[name] = new ProviderClass(providerConfig);
-    
+
     return providerInstances[name];
 }
 
@@ -91,10 +91,23 @@ function providerSupports(providerName, capability) {
     }
 }
 
+/**
+ * Get list of configured models with display info
+ */
+function getConfiguredModels() {
+    return getConfiguredProviders().map(name => ({
+        id: name,
+        name: config.providers[name].name,
+        displayName: config.providers[name].displayName
+    }));
+}
+
 module.exports = {
     getProvider,
     getAvailableProviders,
     getConfiguredProviders,
+    getConfiguredModels,
     providerSupports
 };
+
 
