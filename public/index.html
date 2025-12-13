@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -93,7 +94,7 @@
             transform: translateY(-8px);
             transition: all 0.2s ease;
             z-index: 100;
-            box-shadow: 0 8px 40px rgba(0,0,0,0.5);
+            box-shadow: 0 8px 40px rgba(0, 0, 0, 0.5);
         }
 
         .model-selector.open .model-dropdown {
@@ -232,8 +233,15 @@
         }
 
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(8px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .message.user {
@@ -327,13 +335,29 @@
             animation: bounce 1.4s infinite ease-in-out;
         }
 
-        .typing-indicator span:nth-child(1) { animation-delay: 0s; }
-        .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
-        .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+        .typing-indicator span:nth-child(1) {
+            animation-delay: 0s;
+        }
+
+        .typing-indicator span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-indicator span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
 
         @keyframes bounce {
-            0%, 80%, 100% { transform: translateY(0); }
-            40% { transform: translateY(-4px); }
+
+            0%,
+            80%,
+            100% {
+                transform: translateY(0);
+            }
+
+            40% {
+                transform: translateY(-4px);
+            }
         }
 
         /* Input Area */
@@ -521,7 +545,7 @@
         .modal-overlay {
             position: fixed;
             inset: 0;
-            background: rgba(0,0,0,0.6);
+            background: rgba(0, 0, 0, 0.6);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -599,6 +623,7 @@
         }
     </style>
 </head>
+
 <body>
     <header class="header">
         <div class="model-selector" id="modelSelector">
@@ -614,7 +639,8 @@
         <div class="header-right">
             <button class="header-btn" onclick="showShareModal()" title="Share">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
                 </svg>
             </button>
             <button class="header-btn" onclick="clearChat()" title="New chat">
@@ -646,15 +672,11 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                     </svg>
                 </button>
-                <textarea 
-                    class="input-field"
-                    id="messageInput" 
-                    placeholder="Ask anything"
-                    rows="1"
-                ></textarea>
+                <textarea class="input-field" id="messageInput" placeholder="Ask anything" rows="1"></textarea>
                 <button class="send-btn" id="sendBtn" onclick="sendMessage()" title="Send">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M3.478 2.405a.75.75 0 00-.926.94l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.405z" />
+                        <path
+                            d="M3.478 2.405a.75.75 0 00-.926.94l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.405z" />
                     </svg>
                 </button>
             </div>
@@ -672,13 +694,15 @@
             <div class="share-options">
                 <button class="share-option" onclick="copyLink()">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
                     </svg>
                     Copy link
                 </button>
                 <button class="share-option" onclick="shareTwitter()">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                        <path
+                            d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
                     </svg>
                     Share on X
                 </button>
@@ -772,12 +796,12 @@
             selectedProvider = providerId;
             selectedModel = modelId;
             selectedModelName.textContent = displayName;
-            
+
             // Update selected state visually
             document.querySelectorAll('.model-option').forEach(opt => {
                 opt.classList.toggle('selected', opt.dataset.model === modelId);
             });
-            
+
             modelSelector.classList.remove('open');
             clearChat();
             showToast(`Switched to ${displayName}`);
@@ -817,13 +841,13 @@
         }
 
         // Auto-resize textarea
-        messageInput.addEventListener('input', function() {
+        messageInput.addEventListener('input', function () {
             this.style.height = 'auto';
             this.style.height = Math.min(this.scrollHeight, 150) + 'px';
         });
 
         // Handle Enter key
-        messageInput.addEventListener('keydown', function(e) {
+        messageInput.addEventListener('keydown', function (e) {
             if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
                 sendMessage();
@@ -835,7 +859,7 @@
             if (!file) return;
 
             const reader = new FileReader();
-            reader.onload = function(e) {
+            reader.onload = function (e) {
                 attachedImage = e.target.result.split(',')[1];
                 previewImg.src = e.target.result;
                 imagePreview.classList.add('active');
@@ -990,7 +1014,7 @@
             messageDiv.id = '';
             const contentEl = messageDiv.querySelector('.message-content');
             contentEl.dataset.content = content;
-            
+
             // Add action buttons
             const actionsHtml = `
                 <div class="message-actions">
@@ -1015,7 +1039,7 @@
         }
 
         /**
-         * Send message with streaming response
+         * Send message and get complete response
          */
         async function sendMessage() {
             const message = messageInput.value.trim();
@@ -1035,14 +1059,13 @@
             messageInput.style.height = 'auto';
             removeImage();
 
-            // Add user message to history
-            conversationHistory.push({ role: 'user', content: currentMessage });
-
-            // Create streaming message placeholder
-            const streamingDiv = addStreamingMessage();
+            addTypingIndicator();
 
             try {
-                const requestBody = { 
+                // Add user message to history
+                conversationHistory.push({ role: 'user', content: currentMessage });
+
+                const requestBody = {
                     messages: conversationHistory,
                     provider: currentProvider
                 };
@@ -1051,67 +1074,28 @@
                     requestBody.image = currentImage;
                 }
 
-                // Use streaming endpoint
-                const response = await fetch('/api/message/stream', {
+                const response = await fetch('/api/message', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(requestBody)
                 });
 
-                if (!response.ok) {
-                    throw new Error(`HTTP error: ${response.status}`);
+                const data = await response.json();
+                removeTypingIndicator();
+
+                if (data.success && data.content) {
+                    addMessage('assistant', data.content);
+                    conversationHistory.push({ role: 'assistant', content: data.content });
+                } else {
+                    conversationHistory.pop();
+                    throw new Error(data.message || data.error || 'Failed to get response');
                 }
-
-                const reader = response.body.getReader();
-                const decoder = new TextDecoder();
-                let fullContent = '';
-                let buffer = '';
-
-                while (true) {
-                    const { done, value } = await reader.read();
-                    if (done) break;
-
-                    buffer += decoder.decode(value, { stream: true });
-                    
-                    // Process complete lines
-                    const lines = buffer.split('\n');
-                    buffer = lines.pop() || '';
-
-                    for (const line of lines) {
-                        if (line.startsWith('data: ')) {
-                            try {
-                                const data = JSON.parse(line.slice(6));
-                                
-                                if (data.error) {
-                                    throw new Error(data.error);
-                                }
-                                
-                                if (data.text) {
-                                    fullContent += data.text;
-                                    updateStreamingMessage(streamingDiv, fullContent);
-                                }
-                                
-                                if (data.done) {
-                                    // Stream complete
-                                    fullContent = data.content || fullContent;
-                                }
-                            } catch (e) {
-                                if (e.message && !e.message.includes('JSON')) {
-                                    throw e;
-                                }
-                            }
-                        }
-                    }
-                }
-
-                // Finalize message
-                finalizeStreamingMessage(streamingDiv, fullContent);
-                conversationHistory.push({ role: 'assistant', content: fullContent });
 
             } catch (error) {
-                // Remove streaming div and show error
-                streamingDiv.remove();
-                conversationHistory.pop(); // Remove failed user message
+                removeTypingIndicator();
+                if (conversationHistory.length > 0 && conversationHistory[conversationHistory.length - 1].role === 'user') {
+                    conversationHistory.pop();
+                }
                 addMessage('assistant', `Sorry, something went wrong: ${error.message}`);
             } finally {
                 isLoading = false;
@@ -1123,4 +1107,5 @@
         messageInput.focus();
     </script>
 </body>
+
 </html>
