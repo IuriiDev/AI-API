@@ -979,68 +979,6 @@
             if (indicator) indicator.remove();
         }
 
-        /**
-         * Create a placeholder message for streaming text
-         */
-        function addStreamingMessage() {
-            const welcomeEl = document.getElementById('welcome');
-            if (welcomeEl) welcomeEl.remove();
-
-            const messageDiv = document.createElement('div');
-            messageDiv.className = 'message assistant';
-            messageDiv.id = 'streamingMessage';
-            messageDiv.innerHTML = `
-                <div class="message-content" data-content=""></div>
-            `;
-            messagesContainer.appendChild(messageDiv);
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
-            return messageDiv;
-        }
-
-        /**
-         * Update streaming message with new content
-         */
-        function updateStreamingMessage(messageDiv, content) {
-            const contentEl = messageDiv.querySelector('.message-content');
-            contentEl.dataset.content = content;
-            contentEl.innerHTML = formatContent(content);
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
-        }
-
-        /**
-         * Finalize streaming message with actions
-         */
-        function finalizeStreamingMessage(messageDiv, content) {
-            messageDiv.id = '';
-            const contentEl = messageDiv.querySelector('.message-content');
-            contentEl.dataset.content = content;
-
-            // Add action buttons
-            const actionsHtml = `
-                <div class="message-actions">
-                    <button class="action-btn" onclick="copyMessage(this)" title="Copy">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                        </svg>
-                    </button>
-                    <button class="action-btn" onclick="likeMessage(this)" title="Good response">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5" />
-                        </svg>
-                    </button>
-                    <button class="action-btn" onclick="dislikeMessage(this)" title="Bad response">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14H5.236a2 2 0 01-1.789-2.894l3.5-7A2 2 0 018.736 3h4.018a2 2 0 01.485.06l3.76.94m-7 10v5a2 2 0 002 2h.096c.5 0 .905-.405.905-.904 0-.715.211-1.413.608-2.008L17 13V4m-7 10h2m5-10h2a2 2 0 012 2v6a2 2 0 01-2 2h-2.5" />
-                        </svg>
-                    </button>
-                </div>
-            `;
-            messageDiv.insertAdjacentHTML('beforeend', actionsHtml);
-        }
-
-        /**
-         * Send message and get complete response
-         */
         async function sendMessage() {
             const message = messageInput.value.trim();
             if (!message && !attachedImage) return;
@@ -1054,6 +992,7 @@
             const currentImage = attachedImage;
             const currentMessage = message || 'What do you see in this image?';
             const currentProvider = selectedProvider;
+            const currentModel = selectedModel;
 
             messageInput.value = '';
             messageInput.style.height = 'auto';
@@ -1065,11 +1004,13 @@
                 // Add user message to history
                 conversationHistory.push({ role: 'user', content: currentMessage });
 
+                // Use unified /api/message endpoint for both text and image
                 const requestBody = {
                     messages: conversationHistory,
                     provider: currentProvider
                 };
 
+                // Add image if attached
                 if (currentImage) {
                     requestBody.image = currentImage;
                 }
@@ -1087,12 +1028,14 @@
                     addMessage('assistant', data.content);
                     conversationHistory.push({ role: 'assistant', content: data.content });
                 } else {
+                    // Remove failed message from history
                     conversationHistory.pop();
                     throw new Error(data.message || data.error || 'Failed to get response');
                 }
 
             } catch (error) {
                 removeTypingIndicator();
+                // Remove failed message from history
                 if (conversationHistory.length > 0 && conversationHistory[conversationHistory.length - 1].role === 'user') {
                     conversationHistory.pop();
                 }

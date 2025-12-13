@@ -14,12 +14,12 @@
  * - 'role: model' instead of 'role: assistant'
  */
 
+const axios = require('axios');
 const BaseProvider = require('./BaseProvider');
-const config = require('../config');
 
 class GeminiProvider extends BaseProvider {
-    constructor(providerConfig) {
-        super(providerConfig);
+    constructor(config) {
+        super(config);
     }
 
     getCapabilities() {
@@ -43,13 +43,6 @@ class GeminiProvider extends BaseProvider {
     }
 
     /**
-     * Build streaming URL with API key
-     */
-    buildStreamUrl(model) {
-        return `${this.baseUrl}/models/${model}:streamGenerateContent?alt=sse&key=${this.apiKey}`;
-    }
-
-    /**
      * Chat completion (with optional vision support)
      */
     async chat({ messages, model, maxCompletionTokens, image }) {
@@ -66,74 +59,11 @@ class GeminiProvider extends BaseProvider {
             }
         };
 
-        const response = await this.request(url, payload, {
-            timeout: config.http.timeouts.chat
+        const response = await axios.post(url, payload, {
+            headers: this.getHeaders()
         });
 
         return this.formatChatResponse(response.data);
-    }
-
-    /**
-     * Streaming chat completion using SSE
-     * Gemini returns: data: {"candidates":[{"content":{"parts":[{"text":"chunk"}]}}]}
-     */
-    async chatStream({ messages, model, maxCompletionTokens, image, onChunk, onComplete, onError }) {
-        const modelName = image ? this.models.vision : (model || this.models.chat);
-        const url = this.buildStreamUrl(modelName);
-
-        const contents = this.convertToGeminiFormat(messages, image);
-
-        const payload = {
-            contents,
-            generationConfig: {
-                maxOutputTokens: maxCompletionTokens || this.defaults.maxOutputTokens
-            }
-        };
-
-        try {
-            const response = await this.httpClient.post(url, payload, {
-                headers: this.getHeaders(),
-                responseType: 'stream'
-            });
-
-            let fullContent = '';
-            let buffer = '';
-
-            response.data.on('data', (chunk) => {
-                buffer += chunk.toString();
-
-                const lines = buffer.split('\n');
-                buffer = lines.pop() || '';
-
-                for (const line of lines) {
-                    if (line.startsWith('data: ')) {
-                        const data = line.slice(6);
-
-                        try {
-                            const parsed = JSON.parse(data);
-                            const text = parsed.candidates?.[0]?.content?.parts?.[0]?.text;
-
-                            if (text) {
-                                fullContent += text;
-                                onChunk(text);
-                            }
-                        } catch (e) {
-                            // Skip malformed chunks
-                        }
-                    }
-                }
-            });
-
-            response.data.on('end', () => {
-                onComplete(fullContent);
-            });
-
-            response.data.on('error', (error) => {
-                onError(error);
-            });
-        } catch (error) {
-            onError(error);
-        }
     }
 
     /**
@@ -162,8 +92,8 @@ class GeminiProvider extends BaseProvider {
             }
         };
 
-        const response = await this.request(url, payload, {
-            timeout: config.http.timeouts.chat
+        const response = await axios.post(url, payload, {
+            headers: this.getHeaders()
         });
 
         return this.formatChatResponse(response.data);
@@ -220,3 +150,4 @@ class GeminiProvider extends BaseProvider {
 }
 
 module.exports = GeminiProvider;
+

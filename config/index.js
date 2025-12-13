@@ -10,23 +10,6 @@ module.exports = {
         bodyLimit: '25mb'
     },
 
-    // HTTP Client Configuration (applies to all providers)
-    http: {
-        timeouts: {
-            default: 120000,         // 2 minutes - standard timeout
-            chat: 120000,            // 2 minutes for chat completions
-            imageGeneration: 180000  // 3 minutes for image generation
-        },
-        retry: {
-            maxAttempts: 3,          // Total attempts including initial
-            baseDelay: 1000,         // 1 second initial delay
-            maxDelay: 30000,         // 30 second max delay cap
-            multiplier: 2            // Exponential backoff multiplier
-        },
-        // HTTP status codes that should trigger retry
-        retryableStatuses: [408, 429, 500, 502, 503, 504]
-    },
-
     // AI Providers Configuration
     providers: {
         openai: {
