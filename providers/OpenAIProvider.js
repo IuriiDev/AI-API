@@ -24,7 +24,7 @@ class OpenAIProvider extends BaseProvider {
     /**
      * Chat completion (with optional vision support)
      */
-    async chat({ messages, model, maxCompletionTokens, maxTokens, image }) {
+    async chat({ messages, model, maxCompletionTokens, image }) {
         const url = this.buildUrl(this.endpoints.chat);
 
         // If image provided, transform last user message for vision
@@ -34,9 +34,9 @@ class OpenAIProvider extends BaseProvider {
         }
 
         const payload = {
-            model: image ? this.models.vision : (model || this.models.vision),
+            model: image ? this.models.vision : (model || this.models.chat),
             messages: formattedMessages,
-            max_tokens: maxTokens || maxCompletionTokens || this.defaults.maxTokens
+            max_completion_tokens: maxCompletionTokens || this.defaults.maxCompletionTokens
         };
 
         const response = await axios.post(url, payload, {
@@ -78,7 +78,7 @@ class OpenAIProvider extends BaseProvider {
     /**
      * Image analysis using vision model
      */
-    async analyzeImage({ image, prompt, maxCompletionTokens, maxTokens }) {
+    async analyzeImage({ image, prompt, maxCompletionTokens }) {
         const url = this.buildUrl(this.endpoints.chat);
 
         const payload = {
@@ -97,7 +97,7 @@ class OpenAIProvider extends BaseProvider {
                     ]
                 }
             ],
-            max_tokens: maxTokens || maxCompletionTokens || this.defaults.maxTokens
+            max_completion_tokens: maxCompletionTokens || this.defaults.maxCompletionTokens
         };
 
         const response = await axios.post(url, payload, {

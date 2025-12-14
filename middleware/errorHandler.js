@@ -34,6 +34,7 @@ function errorHandler(error, req, res, next) {
     // Handle Axios errors (from AI provider APIs)
     if (error.response) {
         const providerError = error.response.data?.error || error.response.data;
+        console.error(`[${new Date().toISOString()}] Provider Error Details:`, JSON.stringify(providerError, null, 2));
         return res.status(error.response.status || 500).json({
             success: false,
             error: 'AI Provider Error',
