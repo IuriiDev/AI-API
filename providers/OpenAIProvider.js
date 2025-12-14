@@ -140,18 +140,7 @@ class OpenAIProvider extends BaseProvider {
      */
     formatChatResponse(data) {
         const rawContent = data.choices?.[0]?.message?.content;
-
-        // OpenAI may return a string or an array of content parts (per latest docs)
-        const formattedContent = Array.isArray(rawContent)
-            ? rawContent
-                .map(part => {
-                    if (typeof part === 'string') return part;
-                    if (part?.type === 'text' && part?.text) return part.text;
-                    return part?.text || '';
-                })
-                .filter(Boolean)
-                .join(' ')
-            : rawContent;
+        const formattedContent = this.extractContentText(rawContent);
 
         return {
             provider: this.name,
@@ -162,6 +151,65 @@ class OpenAIProvider extends BaseProvider {
             usage: data.usage,
             raw: data
         };
+    }
+
+    /**
+     * Normalize OpenAI chat content into a single text string.
+     * Handles both legacy string responses and the new content part structure
+     * (e.g., { type: 'output_text', text: { value: '...' } }).
+     */
+    extractContentText(rawContent) {
+        const collected = [];
+
+        const collectText = (node) => {
+            if (!node) return;
+
+            // Plain string
+            if (typeof node === 'string') {
+                if (node.trim()) collected.push(node);
+                return;
+            }
+
+            // Arrays of parts
+            if (Array.isArray(node)) {
+                node.forEach(collectText);
+                return;
+            }
+
+            // Objects with nested text
+            if (typeof node === 'object') {
+                // Direct text fields
+                if (typeof node.text === 'string') {
+                    if (node.text.trim()) collected.push(node.text);
+                } else if (node.text?.value) {
+                    if (node.text.value.trim()) collected.push(node.text.value);
+                }
+
+                // Newer OpenAI shapes (e.g., { output_text: { text: { value } } })
+                if (node.output_text) collectText(node.output_text);
+
+                // Nested content arrays (e.g., { content: [...] })
+                if (node.content) collectText(node.content);
+
+                // Generic value field sometimes used for literals
+                if (typeof node.value === 'string' && node.value.trim()) {
+                    collected.push(node.value);
+                }
+
+                // Tool/message reasoning fields
+                if (node.reasoning_content) collectText(node.reasoning_content);
+            }
+        };
+
+        collectText(rawContent);
+
+        if (!collected.length) {
+            // Surface raw content to logs for debugging unexpected response shapes
+            console.warn('OpenAI chat content empty, raw content:', JSON.stringify(rawContent));
+            return null;
+        }
+
+        return collected.join(' ');
     }
 
     /**
