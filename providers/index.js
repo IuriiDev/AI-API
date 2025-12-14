@@ -15,6 +15,7 @@ const config = require('../config');
 const OpenAIProvider = require('./OpenAIProvider');
 const GeminiProvider = require('./GeminiProvider');
 const GrokProvider = require('./GrokProvider');
+const DeepSeekProvider = require('./DeepSeekProvider');
 
 /**
  * Provider registry - maps provider names to their classes
@@ -23,7 +24,8 @@ const GrokProvider = require('./GrokProvider');
 const providerRegistry = {
     openai: OpenAIProvider,
     gemini: GeminiProvider,
-    grok: GrokProvider
+    grok: GrokProvider,
+    deepseek: DeepSeekProvider
 };
 
 /**

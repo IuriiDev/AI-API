@@ -115,6 +115,27 @@ module.exports = {
             defaults: {
                 maxTokens: 4096
             }
+        },
+
+        deepseek: {
+            name: 'DeepSeek',
+            baseUrl: 'https://api.deepseek.com/v1',
+            apiKey: process.env.DEEPSEEK_API_KEY,
+            endpoints: {
+                chat: '/chat/completions'
+            },
+            models: {
+                chat: 'DeepSeek-V3.2'
+            },
+            availableModels: [
+                { id: 'DeepSeek-V3.2', displayName: 'DeepSeek V3.2', description: 'Reasoning-first flagship model' },
+                { id: 'DeepSeek-V3.2-Speciale', displayName: 'DeepSeek V3.2 Speciale', description: 'Specialized agentic reasoning' },
+                { id: 'DeepSeek-V3.2-Exp', displayName: 'DeepSeek V3.2 Experimental', description: 'Early experimental release' }
+            ],
+            defaultModel: 'DeepSeek-V3.2',
+            defaults: {
+                maxTokens: 8192
+            }
         }
     },
 
