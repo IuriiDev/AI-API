@@ -2,119 +2,93 @@
 
 All client applications must communicate with the backend only. **Never expose API keys in client code.**
 
-## Base URL
+## API Base URL
 
 ```
-http://localhost:3000/api
+https://ai-api.okonrentner.com/api
 ```
 
 ---
 
-## Standard (Synchronous) Request
+## Chat - POST /ai/respond
 
-### curl
+The unified chat endpoint supports multiple input formats and modes.
+
+### Simple Input (New Apps)
 
 ```bash
-curl -X POST http://localhost:3000/api/ai/respond \
+curl -X POST https://ai-api.okonrentner.com/api/ai/respond \
   -H "Content-Type: application/json" \
   -d '{
-    "input": "Explain quantum computing in simple terms",
-    "model": "gpt-4o-mini"
+    "input": "Explain quantum computing",
+    "model": "gpt-5-nano"
   }'
 ```
 
-**Response:**
+### Messages Array (iOS App Compatible)
+
+```bash
+curl -X POST https://ai-api.okonrentner.com/api/ai/respond \
+  -H "Content-Type: application/json" \
+  -d '{
+    "messages": [
+      {"role": "user", "content": "Hello"},
+      {"role": "assistant", "content": "Hi! How can I help?"},
+      {"role": "user", "content": "Tell me about AI"}
+    ],
+    "provider": "openai"
+  }'
+```
+
+### With Image (Vision)
+
+```bash
+curl -X POST https://ai-api.okonrentner.com/api/ai/respond \
+  -H "Content-Type: application/json" \
+  -d '{
+    "messages": [{"role": "user", "content": "What is in this image?"}],
+    "image": "<base64-encoded-image>",
+    "provider": "openai"
+  }'
+```
+
+### Response
+
 ```json
 {
   "success": true,
-  "text": "Quantum computing uses quantum bits...",
+  "text": "AI response here...",
+  "content": "AI response here...",
   "id": "chatcmpl-...",
-  "model": "gpt-4o-mini",
+  "model": "gpt-5-nano",
+  "provider": "ChatGPT",
   "usage": { "prompt_tokens": 10, "completion_tokens": 150 }
 }
 ```
 
-### JavaScript (fetch)
-
-```javascript
-async function sendMessage(input) {
-  const response = await fetch('http://localhost:3000/api/ai/respond', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ input })
-  });
-  
-  const data = await response.json();
-  return data.text;
-}
-
-// Usage
-const reply = await sendMessage('Hello, how are you?');
-console.log(reply);
-```
-
-### Swift (URLSession)
-
-```swift
-struct AIRequest: Codable {
-    let input: String
-    let model: String?
-    let stream: Bool?
-    let background: Bool?
-}
-
-struct AIResponse: Codable {
-    let success: Bool
-    let text: String?
-    let id: String?
-}
-
-func sendMessage(_ input: String) async throws -> String {
-    let url = URL(string: "http://localhost:3000/api/ai/respond")!
-    var request = URLRequest(url: url)
-    request.httpMethod = "POST"
-    request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-    
-    let body = AIRequest(input: input, model: nil, stream: false, background: false)
-    request.httpBody = try JSONEncoder().encode(body)
-    
-    let (data, _) = try await URLSession.shared.data(for: request)
-    let response = try JSONDecoder().decode(AIResponse.self, from: data)
-    
-    return response.text ?? ""
-}
-```
-
 ---
 
-## Streaming Request (SSE)
-
-### curl
+## Streaming - POST /ai/respond
 
 ```bash
-curl -X POST http://localhost:3000/api/ai/respond \
+curl -X POST https://ai-api.okonrentner.com/api/ai/respond \
   -H "Content-Type: application/json" \
-  -d '{"input": "Tell me a short story", "stream": true}'
+  -d '{"input": "Tell me a story", "stream": true}'
 ```
 
 **Response (SSE):**
 ```
 data: {"text":"Once"}
-
 data: {"text":" upon"}
-
-data: {"text":" a"}
-
-data: {"text":" time..."}
-
+data: {"text":" a time..."}
 data: {"done":true}
 ```
 
-### JavaScript (EventSource-like)
+### JavaScript Example
 
 ```javascript
-async function streamMessage(input, onChunk) {
-  const response = await fetch('http://localhost:3000/api/ai/respond', {
+async function streamChat(input, onChunk) {
+  const response = await fetch('https://ai-api.okonrentner.com/api/ai/respond', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ input, stream: true })
@@ -122,74 +96,33 @@ async function streamMessage(input, onChunk) {
 
   const reader = response.body.getReader();
   const decoder = new TextDecoder();
-  let fullText = '';
 
   while (true) {
     const { done, value } = await reader.read();
     if (done) break;
 
-    const chunk = decoder.decode(value);
-    const lines = chunk.split('\n');
-
+    const lines = decoder.decode(value).split('\n');
     for (const line of lines) {
       if (line.startsWith('data: ')) {
         const json = JSON.parse(line.slice(6));
-        if (json.text) {
-          fullText += json.text;
-          onChunk(json.text);
-        }
-        if (json.done) {
-          return fullText;
-        }
+        if (json.text) onChunk(json.text);
+        if (json.done) return;
       }
     }
   }
-  return fullText;
-}
-
-// Usage
-await streamMessage('Tell me a story', (chunk) => {
-  process.stdout.write(chunk); // Print incrementally
-});
-```
-
-### Swift (URLSession with streaming)
-
-```swift
-func streamMessage(_ input: String, onChunk: @escaping (String) -> Void) async throws {
-    let url = URL(string: "http://localhost:3000/api/ai/respond")!
-    var request = URLRequest(url: url)
-    request.httpMethod = "POST"
-    request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-    
-    let body = AIRequest(input: input, model: nil, stream: true, background: false)
-    request.httpBody = try JSONEncoder().encode(body)
-    
-    let (bytes, _) = try await URLSession.shared.bytes(for: request)
-    
-    for try await line in bytes.lines {
-        if line.hasPrefix("data: ") {
-            let jsonString = String(line.dropFirst(6))
-            if let data = jsonString.data(using: .utf8),
-               let json = try? JSONDecoder().decode([String: String].self, from: data),
-               let text = json["text"] {
-                onChunk(text)
-            }
-        }
-    }
 }
 ```
 
 ---
 
-## Background Job (Long-Running Tasks)
+## Background Jobs - POST /ai/respond
 
-### Step 1: Start the job
+### Start Job
 
 ```bash
-curl -X POST http://localhost:3000/api/ai/respond \
+curl -X POST https://ai-api.okonrentner.com/api/ai/respond \
   -H "Content-Type: application/json" \
-  -d '{"input": "Write a detailed essay about AI ethics", "background": true}'
+  -d '{"input": "Write an essay", "background": true}'
 ```
 
 **Response:**
@@ -201,99 +134,72 @@ curl -X POST http://localhost:3000/api/ai/respond \
 }
 ```
 
-### Step 2: Poll for completion
+### Poll Job - GET /ai/jobs/:job_id
 
 ```bash
-curl http://localhost:3000/api/ai/jobs/job_abc123def456
+curl https://ai-api.okonrentner.com/api/ai/jobs/job_abc123def456
 ```
 
-**Response (running):**
-```json
-{
-  "success": true,
-  "job_id": "job_abc123def456",
-  "status": "running"
-}
-```
-
-**Response (completed):**
+**Response:**
 ```json
 {
   "success": true,
   "job_id": "job_abc123def456",
   "status": "completed",
-  "text": "AI ethics encompasses several key principles..."
+  "text": "Here is your essay..."
 }
 ```
 
-### JavaScript (polling loop)
+Status values: `queued`, `running`, `completed`, `failed`
 
-```javascript
-async function runBackgroundJob(input) {
-  // Start job
-  const startResponse = await fetch('http://localhost:3000/api/ai/respond', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ input, background: true })
-  });
-  const { job_id } = await startResponse.json();
-  console.log(`Job started: ${job_id}`);
+---
 
-  // Poll until complete
-  while (true) {
-    await new Promise(r => setTimeout(r, 2000)); // Wait 2 seconds
-    
-    const statusResponse = await fetch(`http://localhost:3000/api/ai/jobs/${job_id}`);
-    const status = await statusResponse.json();
-    
-    console.log(`Status: ${status.status}`);
-    
-    if (status.status === 'completed') {
-      return status.text;
-    }
-    if (status.status === 'failed') {
-      throw new Error(status.error);
-    }
-  }
+## Swift Example (iOS)
+
+```swift
+struct AIRequest: Codable {
+    let messages: [[String: String]]
+    let provider: String?
+    let image: String?
 }
 
-// Usage
-const result = await runBackgroundJob('Write a long essay');
-console.log(result);
+struct AIResponse: Codable {
+    let success: Bool
+    let content: String?
+    let text: String?
+}
+
+func sendMessage(messages: [[String: String]], provider: String = "openai", image: String? = nil) async throws -> String {
+    let url = URL(string: "https://ai-api.okonrentner.com/api/ai/respond")!
+    var request = URLRequest(url: url)
+    request.httpMethod = "POST"
+    request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+    
+    let body = AIRequest(messages: messages, provider: provider, image: image)
+    request.httpBody = try JSONEncoder().encode(body)
+    
+    let (data, _) = try await URLSession.shared.data(for: request)
+    let response = try JSONDecoder().decode(AIResponse.self, from: data)
+    
+    return response.content ?? response.text ?? ""
+}
 ```
 
 ---
 
 ## Error Handling
 
-All endpoints return consistent error responses:
-
 ```json
 {
   "success": false,
   "error": "Error Type",
-  "message": "Human-readable error description"
+  "message": "Human-readable description"
 }
 ```
-
-### Common Status Codes
 
 | Code | Meaning |
 |------|---------|
-| 400  | Bad Request (invalid input) |
-| 404  | Not Found (invalid endpoint or job ID) |
-| 429  | Rate Limit Exceeded |
+| 400  | Bad Request |
+| 404  | Not Found |
+| 429  | Rate Limit (check `Retry-After` header) |
 | 500  | Server Error |
-
-### Rate Limit Response
-
-```json
-{
-  "success": false,
-  "error": "Too Many Requests",
-  "message": "Rate limit exceeded. Try again in 45 seconds.",
-  "retryAfter": 45
-}
-```
-
-Check `Retry-After` header for seconds until reset.

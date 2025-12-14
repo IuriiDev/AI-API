@@ -7,40 +7,23 @@
 const { APIError } = require('./errorHandler');
 
 /**
- * Validate chat request
- */
-function validateChatRequest(req, res, next) {
-    const { messages } = req.body;
-    
-    if (!messages || !Array.isArray(messages)) {
-        throw new APIError('Invalid request: messages array is required', 400);
-    }
-    
-    if (messages.length === 0) {
-        throw new APIError('Invalid request: messages array cannot be empty', 400);
-    }
-    
-    next();
-}
-
-/**
  * Validate image analysis request
  */
 function validateImageAnalysisRequest(req, res, next) {
     const { image, prompt } = req.body;
-    
+
     if (!image) {
         throw new APIError('Invalid request: image is required', 400);
     }
-    
+
     if (!prompt || typeof prompt !== 'string') {
         throw new APIError('Invalid request: prompt string is required', 400);
     }
-    
+
     if (prompt.trim().length === 0) {
         throw new APIError('Invalid request: prompt cannot be empty', 400);
     }
-    
+
     next();
 }
 
@@ -49,15 +32,15 @@ function validateImageAnalysisRequest(req, res, next) {
  */
 function validateImageGenerationRequest(req, res, next) {
     const { prompt } = req.body;
-    
+
     if (!prompt || typeof prompt !== 'string') {
         throw new APIError('Invalid request: prompt string is required', 400);
     }
-    
+
     if (prompt.trim().length === 0) {
         throw new APIError('Invalid request: prompt cannot be empty', 400);
     }
-    
+
     next();
 }
 
@@ -67,7 +50,7 @@ function validateImageGenerationRequest(req, res, next) {
 function validateProvider(req, res, next) {
     const { getAvailableProviders } = require('../providers');
     const provider = req.body.provider || req.query.provider;
-    
+
     if (provider) {
         const available = getAvailableProviders();
         if (!available.includes(provider.toLowerCase())) {
@@ -77,14 +60,12 @@ function validateProvider(req, res, next) {
             );
         }
     }
-    
+
     next();
 }
 
 module.exports = {
-    validateChatRequest,
     validateImageAnalysisRequest,
     validateImageGenerationRequest,
     validateProvider
 };
-

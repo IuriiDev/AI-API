@@ -54,17 +54,17 @@ module.exports = {
             },
             // Models used for API requests
             models: {
-                chat: 'gpt-4o-mini',
-                vision: 'gpt-4o-mini',
-                imageGeneration: 'dall-e-3'
+                chat: 'gpt-5-nano',
+                vision: 'gpt-5-nano',
+                imageGeneration: 'gpt-image-1'
             },
             // Models shown in UI dropdown
             availableModels: [
-                { id: 'gpt-4o', displayName: 'GPT-4o', description: 'Most capable' },
-                { id: 'gpt-4o-mini', displayName: 'GPT-4o Mini', description: 'Fast & efficient' },
-                { id: 'gpt-4-turbo', displayName: 'GPT-4 Turbo', description: 'High quality' }
+                { id: 'gpt-5.2', displayName: 'ChatGPT 5.2', description: 'Most capable' },
+                { id: 'gpt-5-mini', displayName: 'ChatGPT 5 Mini', description: 'Balanced' },
+                { id: 'gpt-5-nano', displayName: 'ChatGPT 5 Nano', description: 'Fast & efficient' }
             ],
-            defaultModel: 'gpt-4o-mini',
+            defaultModel: 'gpt-5-nano',
             defaults: {
                 maxCompletionTokens: 4096
             }
@@ -78,13 +78,13 @@ module.exports = {
                 chat: '/models/{model}:generateContent'
             },
             models: {
-                chat: 'gemini-2.0-flash-exp',
-                vision: 'gemini-2.0-flash-exp'
+                chat: 'gemini-2.5-flash',
+                vision: 'gemini-2.5-flash'
             },
             availableModels: [
-                { id: 'gemini-2.0-flash-exp', displayName: 'Gemini 2.0 Flash', description: 'Multimodal reasoning' }
+                { id: 'gemini-2.5-flash', displayName: 'Gemini 2.5 Flash', description: 'Multimodal reasoning' }
             ],
-            defaultModel: 'gemini-2.0-flash-exp',
+            defaultModel: 'gemini-2.5-flash',
             defaults: {
                 maxOutputTokens: 8192
             }
@@ -98,13 +98,13 @@ module.exports = {
                 chat: '/chat/completions'
             },
             models: {
-                chat: 'grok-beta',
-                vision: 'grok-beta'
+                chat: 'grok-4-1-fast-non-reasoning',
+                vision: 'grok-4-1-fast-non-reasoning'
             },
             availableModels: [
-                { id: 'grok-beta', displayName: 'Grok Beta', description: '2M context window' }
+                { id: 'grok-4-1-fast', displayName: 'Grok 4.1 Fast', description: '2M context window' }
             ],
-            defaultModel: 'grok-beta',
+            defaultModel: 'grok-4-1-fast',
             defaults: {
                 maxTokens: 4096
             }

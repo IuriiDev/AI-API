@@ -2,9 +2,9 @@
  * AI API Gateway Server
  * 
  * Multi-provider AI API supporting:
- * - OpenAI (GPT-4o, GPT-4o-mini)
- * - Gemini (2.0 Flash)
- * - Grok (Beta)
+ * - OpenAI (ChatGPT 5.2, 5 Mini, 5 Nano)
+ * - Gemini (2.5 Flash)
+ * - Grok (4.1 Fast)
  * 
  * Features:
  * - Streaming responses (SSE)
@@ -86,12 +86,11 @@ app.listen(PORT, () => {
     console.log('   GET  /api/providers    - List providers');
     console.log('   GET  /api/models       - List models');
     console.log('');
-    console.log('   🆕 New Unified Endpoints:');
+    console.log('   💬 Chat:');
     console.log('   POST /api/ai/respond   - Chat (sync/stream/background)');
     console.log('   GET  /api/ai/jobs/:id  - Poll background job');
     console.log('');
-    console.log('   📌 Legacy Endpoints:');
-    console.log('   POST /api/message      - Chat completion');
+    console.log('   🖼️  Images:');
     console.log('   POST /api/analyze-image - Image analysis');
     console.log('   POST /api/generate-image - Image generation');
     console.log('═══════════════════════════════════════');

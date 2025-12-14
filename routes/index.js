@@ -2,24 +2,22 @@
  * API Routes
  * 
  * Centralizes all route definitions
- * Easy to add new endpoints or versioning
+ * Clean architecture with new unified AI endpoint
  */
 
 const express = require('express');
 const router = express.Router();
 
 // Controllers
-const { handleChat } = require('../controllers/chatController');
-const { handleImageAnalysis } = require('../controllers/imageAnalysisController');
-const { handleImageGeneration } = require('../controllers/imageGenerationController');
 const { handleRespond } = require('../controllers/respondController');
 const { handleGetJob } = require('../controllers/jobController');
+const { handleImageAnalysis } = require('../controllers/imageAnalysisController');
+const { handleImageGeneration } = require('../controllers/imageGenerationController');
 
 // Middleware
 const { asyncHandler } = require('../middleware/errorHandler');
 const { rateLimiter } = require('../middleware/rateLimiter');
 const {
-    validateChatRequest,
     validateImageAnalysisRequest,
     validateImageGenerationRequest,
     validateProvider
@@ -35,18 +33,16 @@ router.get('/', (req, res) => {
     res.json({
         success: true,
         message: '🚀 AI API Gateway is running',
-        version: '2.1.0',
+        version: '3.0.0',
         availableProviders: getAvailableProviders(),
         configuredProviders: getConfiguredProviders(),
         endpoints: {
-            // New unified endpoint
             respond: 'POST /api/ai/respond',
             jobs: 'GET /api/ai/jobs/:job_id',
-            // Legacy endpoints
-            chat: 'POST /api/message',
             imageAnalysis: 'POST /api/analyze-image',
             imageGeneration: 'POST /api/generate-image',
-            providers: 'GET /api/providers'
+            providers: 'GET /api/providers',
+            models: 'GET /api/models'
         }
     });
 });
@@ -73,14 +69,21 @@ router.get('/models', (req, res) => {
 });
 
 // ═══════════════════════════════════════════════════════════════════════════
-// NEW AI ENDPOINTS (with rate limiting)
+// AI CHAT ENDPOINTS
 // ═══════════════════════════════════════════════════════════════════════════
 
 /**
- * AI Respond - Unified endpoint
+ * AI Respond - Unified chat endpoint
  * POST /api/ai/respond
  * 
  * Supports: synchronous, streaming (SSE), background jobs
+ * 
+ * Body:
+ * - input: string (user text) OR messages: array (conversation)
+ * - model: string (optional)
+ * - stream: boolean (optional, default: false)
+ * - background: boolean (optional, default: false)
+ * - provider: string (optional, default: 'openai')
  */
 router.post('/ai/respond',
     rateLimiter,
@@ -97,19 +100,8 @@ router.get('/ai/jobs/:job_id',
 );
 
 // ═══════════════════════════════════════════════════════════════════════════
-// LEGACY ENDPOINTS (kept for backward compatibility)
+// IMAGE ENDPOINTS (for other apps)
 // ═══════════════════════════════════════════════════════════════════════════
-
-/**
- * Chat Completion
- * POST /api/message
- */
-router.post('/message',
-    rateLimiter,
-    validateProvider,
-    validateChatRequest,
-    asyncHandler(handleChat)
-);
 
 /**
  * Image Analysis (Vision)
