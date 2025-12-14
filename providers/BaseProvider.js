@@ -28,6 +28,10 @@ const config = require('../config');
  * @property {string} [model] - Model to use
  * @property {number} [maxCompletionTokens] - Max tokens in response
  * @property {string} [image] - Base64 encoded image
+ * @property {Object[]} [tools] - Tool definitions (OpenAI-compatible schema)
+ * @property {'auto'|'none'|Object} [toolChoice] - Tool selection strategy
+ * @property {Object|string} [responseFormat] - Structured output mode
+ * @property {Object} [metadata] - Provider-specific metadata/options
  */
 
 /**
@@ -38,6 +42,7 @@ const config = require('../config');
  * @property {string} content - Response text
  * @property {string} finishReason - Why generation stopped
  * @property {Object} usage - Token usage
+ * @property {Object[]} [toolCalls] - Tool calls requested by the model
  * @property {Object} raw - Raw API response
  */
 

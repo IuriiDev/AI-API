@@ -25,7 +25,7 @@ class OpenAIProvider extends BaseProvider {
      * @param {import('./BaseProvider').ChatParams} params
      * @returns {Promise<import('./BaseProvider').ChatResponse>}
      */
-    async chat({ messages, model, maxCompletionTokens, image }) {
+    async chat({ messages, model, maxCompletionTokens, image, responseFormat, tools, toolChoice, metadata }) {
         const url = this.buildUrl(this.endpoints.chat);
 
         // If image provided, transform messages for vision
@@ -33,10 +33,18 @@ class OpenAIProvider extends BaseProvider {
             ? this.formatMessagesWithImage(messages, image)
             : messages;
 
+        const normalizedResponseFormat = typeof responseFormat === 'string'
+            ? { type: responseFormat }
+            : responseFormat;
+
         const payload = {
             model: image ? this.models.vision : (model || this.models.chat),
             messages: formattedMessages,
-            max_completion_tokens: maxCompletionTokens || this.defaults.maxCompletionTokens
+            max_completion_tokens: maxCompletionTokens || this.defaults.maxCompletionTokens,
+            response_format: normalizedResponseFormat,
+            tools,
+            tool_choice: toolChoice,
+            metadata
         };
 
         const response = await this.requestWithRetry(url, payload);
@@ -48,7 +56,7 @@ class OpenAIProvider extends BaseProvider {
      * @param {import('./BaseProvider').ChatParams} params
      * @param {Function} onChunk - Callback for each text chunk
      */
-    async chatStream({ messages, model, maxCompletionTokens, image }, onChunk) {
+    async chatStream({ messages, model, maxCompletionTokens, image, responseFormat, tools, toolChoice, metadata }, onChunk) {
         const url = this.buildUrl(this.endpoints.chat);
 
         // If image provided, transform messages for vision
@@ -56,10 +64,18 @@ class OpenAIProvider extends BaseProvider {
             ? this.formatMessagesWithImage(messages, image)
             : messages;
 
+        const normalizedResponseFormat = typeof responseFormat === 'string'
+            ? { type: responseFormat }
+            : responseFormat;
+
         const payload = {
             model: image ? this.models.vision : (model || this.models.chat),
             messages: formattedMessages,
             max_completion_tokens: maxCompletionTokens || this.defaults.maxCompletionTokens,
+            response_format: normalizedResponseFormat,
+            tools,
+            tool_choice: toolChoice,
+            metadata,
             stream: true
         };
 
@@ -85,7 +101,10 @@ class OpenAIProvider extends BaseProvider {
 
                         try {
                             const parsed = JSON.parse(data);
-                            const content = parsed.choices?.[0]?.delta?.content;
+                            const delta = parsed.choices?.[0]?.delta;
+                            const content = Array.isArray(delta?.content)
+                                ? delta.content.map(part => part?.text || part?.content || '').join('')
+                                : delta?.content;
                             if (content) onChunk(content);
                         } catch {
                             // Skip malformed JSON
@@ -160,6 +179,7 @@ class OpenAIProvider extends BaseProvider {
             id: data.id,
             model: data.model,
             content: data.choices?.[0]?.message?.content || null,
+            toolCalls: data.choices?.[0]?.message?.tool_calls || [],
             finishReason: data.choices?.[0]?.finish_reason,
             usage: {
                 promptTokens: data.usage?.prompt_tokens,
