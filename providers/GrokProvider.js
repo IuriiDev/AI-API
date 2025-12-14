@@ -4,7 +4,11 @@
  * API: OpenAI-compatible (https://api.x.ai/v1)
  * 
  * Models:
+ * - grok-4-1-fast-reasoning (2M context, fast reasoning)
  * - grok-4-1-fast-non-reasoning (2M context, fast responses)
+ * - grok-4-1 (2M context, balanced)
+ * - grok-4-fast-reasoning (512k context, fast reasoning)
+ * - grok-4-fast-non-reasoning (512k context, fast responses)
  * 
  * Uses OpenAI-compatible format, inherits shared functionality from BaseProvider
  */
