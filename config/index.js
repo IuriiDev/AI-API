@@ -102,9 +102,13 @@ module.exports = {
                 vision: 'grok-4-1-fast-non-reasoning'
             },
             availableModels: [
-                { id: 'grok-4-1-fast', displayName: 'Grok 4.1 Fast', description: '2M context window' }
+                { id: 'grok-4-1-fast-reasoning', displayName: 'Grok 4.1 Fast (Reasoning)', description: '2M context window' },
+                { id: 'grok-4-1-fast-non-reasoning', displayName: 'Grok 4.1 Fast (Non-Reasoning)', description: '2M context window' },
+                { id: 'grok-4-1', displayName: 'Grok 4.1', description: '2M context window' },
+                { id: 'grok-4-fast-reasoning', displayName: 'Grok 4 Fast (Reasoning)', description: '512k context window' },
+                { id: 'grok-4-fast-non-reasoning', displayName: 'Grok 4 Fast (Non-Reasoning)', description: '512k context window' }
             ],
-            defaultModel: 'grok-4-1-fast',
+            defaultModel: 'grok-4-1-fast-non-reasoning',
             defaults: {
                 maxTokens: 4096
             }
