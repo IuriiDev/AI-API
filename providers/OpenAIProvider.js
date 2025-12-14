@@ -4,25 +4,30 @@
  * Implements: Single Responsibility & Liskov Substitution (SOLID)
  * 
  * Supports:
- * - Chat completions (GPT-5-nano, GPT-4o, etc.)
+ * - Chat completions (GPT-4o, GPT-4o-mini, etc.)
+ * - Streaming responses
  * - Image analysis/vision
- * - Image generation (gpt-image-1)
+ * - Image generation (DALL-E 3)
+ * - Retry logic with exponential backoff
  */
 
 const axios = require('axios');
 const BaseProvider = require('./BaseProvider');
+const config = require('../config');
 
 class OpenAIProvider extends BaseProvider {
-    constructor(config) {
-        super(config);
+    constructor(providerConfig) {
+        super(providerConfig);
+        this.timeouts = config.timeouts;
     }
 
     getCapabilities() {
-        return ['chat', 'vision', 'imageGeneration'];
+        return ['chat', 'vision', 'imageGeneration', 'streaming'];
     }
 
     /**
      * Chat completion (with optional vision support)
+     * Includes retry logic for transient failures
      */
     async chat({ messages, model, maxCompletionTokens, image }) {
         const url = this.buildUrl(this.endpoints.chat);
@@ -34,16 +39,121 @@ class OpenAIProvider extends BaseProvider {
         }
 
         const payload = {
-            model: image ? this.models.vision : (model || this.models.vision),
+            model: image ? this.models.vision : (model || this.models.chat),
             messages: formattedMessages,
             max_completion_tokens: maxCompletionTokens || this.defaults.maxCompletionTokens
         };
 
+        const response = await this.requestWithRetry(url, payload);
+        return this.formatChatResponse(response.data);
+    }
+
+    /**
+     * Make request with retry logic and timeout
+     */
+    async requestWithRetry(url, payload, attempt = 1) {
+        try {
+            const response = await axios.post(url, payload, {
+                headers: this.getHeaders(),
+                timeout: this.timeouts.requestMs
+            });
+            return response;
+        } catch (error) {
+            // Only retry on transient errors
+            const isRetryable = this.isRetryableError(error);
+            const canRetry = attempt < this.timeouts.retryAttempts;
+
+            if (isRetryable && canRetry) {
+                const delay = this.timeouts.retryDelayMs * Math.pow(2, attempt - 1);
+                console.log(`[OpenAI] Retry attempt ${attempt + 1} after ${delay}ms`);
+                await this.sleep(delay);
+                return this.requestWithRetry(url, payload, attempt + 1);
+            }
+
+            throw error;
+        }
+    }
+
+    /**
+     * Check if error is retryable
+     */
+    isRetryableError(error) {
+        if (!error.response) {
+            // Network errors are retryable
+            return true;
+        }
+
+        const status = error.response.status;
+        // Retry on 429 (rate limit), 500, 502, 503, 504
+        return [429, 500, 502, 503, 504].includes(status);
+    }
+
+    /**
+     * Sleep helper for retry delay
+     */
+    sleep(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    /**
+     * Streaming chat completion
+     * Calls onChunk callback for each text chunk
+     */
+    async chatStream({ messages, model, maxCompletionTokens }, onChunk) {
+        const url = this.buildUrl(this.endpoints.chat);
+
+        const payload = {
+            model: model || this.models.chat,
+            messages,
+            max_completion_tokens: maxCompletionTokens || this.defaults.maxCompletionTokens,
+            stream: true
+        };
+
         const response = await axios.post(url, payload, {
-            headers: this.getHeaders()
+            headers: this.getHeaders(),
+            timeout: this.timeouts.requestMs * 3, // Longer timeout for streaming
+            responseType: 'stream'
         });
 
-        return this.formatChatResponse(response.data);
+        return new Promise((resolve, reject) => {
+            let buffer = '';
+
+            response.data.on('data', (chunk) => {
+                buffer += chunk.toString();
+
+                // Process complete SSE messages
+                const lines = buffer.split('\n');
+                buffer = lines.pop() || ''; // Keep incomplete line in buffer
+
+                for (const line of lines) {
+                    if (line.startsWith('data: ')) {
+                        const data = line.slice(6);
+
+                        if (data === '[DONE]') {
+                            continue;
+                        }
+
+                        try {
+                            const parsed = JSON.parse(data);
+                            const content = parsed.choices?.[0]?.delta?.content;
+                            if (content) {
+                                onChunk(content);
+                            }
+                        } catch (e) {
+                            // Skip malformed JSON
+                        }
+                    }
+                }
+            });
+
+            response.data.on('end', () => {
+                resolve();
+            });
+
+            response.data.on('error', (error) => {
+                reject(error);
+            });
+        });
     }
 
     /**
@@ -100,15 +210,12 @@ class OpenAIProvider extends BaseProvider {
             max_completion_tokens: maxCompletionTokens || this.defaults.maxCompletionTokens
         };
 
-        const response = await axios.post(url, payload, {
-            headers: this.getHeaders()
-        });
-
+        const response = await this.requestWithRetry(url, payload);
         return this.formatChatResponse(response.data);
     }
 
     /**
-     * Image generation using gpt-image-1
+     * Image generation using DALL-E
      */
     async generateImage({ prompt, size, quality, outputFormat, count }) {
         const url = this.buildUrl(this.endpoints.imageGeneration);
@@ -118,14 +225,11 @@ class OpenAIProvider extends BaseProvider {
             prompt: prompt.trim(),
             n: count || 1,
             size: size || '1024x1024',
-            quality: quality || 'auto',
-            output_format: outputFormat || 'png'
+            quality: quality || 'standard',
+            response_format: 'b64_json'
         };
 
-        const response = await axios.post(url, payload, {
-            headers: this.getHeaders()
-        });
-
+        const response = await this.requestWithRetry(url, payload);
         return this.formatImageResponse(response.data);
     }
 
@@ -161,4 +265,3 @@ class OpenAIProvider extends BaseProvider {
 }
 
 module.exports = OpenAIProvider;
-
