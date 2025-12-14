@@ -1015,7 +1015,7 @@
                     requestBody.image = currentImage;
                 }
 
-                const response = await fetch('/api/message', {
+                const response = await fetch('/api/ai/respond', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(requestBody)

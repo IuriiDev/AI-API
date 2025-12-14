@@ -2,7 +2,7 @@
  * API Routes
  * 
  * Centralizes all route definitions
- * Clean architecture with new unified AI endpoint
+ * Clean architecture with unified AI endpoint
  */
 
 const express = require('express');
@@ -69,21 +69,20 @@ router.get('/models', (req, res) => {
 });
 
 // ═══════════════════════════════════════════════════════════════════════════
-// AI CHAT ENDPOINTS
+// AI CHAT ENDPOINT
 // ═══════════════════════════════════════════════════════════════════════════
 
 /**
  * AI Respond - Unified chat endpoint
  * POST /api/ai/respond
  * 
- * Supports: synchronous, streaming (SSE), background jobs
- * 
  * Body:
- * - input: string (user text) OR messages: array (conversation)
+ * - messages: array of { role, content }
  * - model: string (optional)
- * - stream: boolean (optional, default: false)
- * - background: boolean (optional, default: false)
  * - provider: string (optional, default: 'openai')
+ * - image: string (optional, base64 encoded)
+ * - stream: boolean (optional, SSE streaming)
+ * - background: boolean (optional, async job)
  */
 router.post('/ai/respond',
     rateLimiter,
@@ -100,7 +99,7 @@ router.get('/ai/jobs/:job_id',
 );
 
 // ═══════════════════════════════════════════════════════════════════════════
-// IMAGE ENDPOINTS (for other apps)
+// IMAGE ENDPOINTS
 // ═══════════════════════════════════════════════════════════════════════════
 
 /**
