@@ -140,18 +140,7 @@ class OpenAIProvider extends BaseProvider {
      */
     formatChatResponse(data) {
         const rawContent = data.choices?.[0]?.message?.content;
-
-        // OpenAI may return a string or an array of content parts (per latest docs)
-        const formattedContent = Array.isArray(rawContent)
-            ? rawContent
-                .map(part => {
-                    if (typeof part === 'string') return part;
-                    if (part?.type === 'text' && part?.text) return part.text;
-                    return part?.text || '';
-                })
-                .filter(Boolean)
-                .join(' ')
-            : rawContent;
+        const formattedContent = this.extractContentText(rawContent);
 
         return {
             provider: this.name,
@@ -162,6 +151,44 @@ class OpenAIProvider extends BaseProvider {
             usage: data.usage,
             raw: data
         };
+    }
+
+    /**
+     * Normalize OpenAI chat content into a single text string.
+     * Handles both legacy string responses and the new content part structure
+     * (e.g., { type: 'output_text', text: { value: '...' } }).
+     */
+    extractContentText(rawContent) {
+        if (!rawContent) return null;
+        if (typeof rawContent === 'string') return rawContent;
+
+        if (Array.isArray(rawContent)) {
+            const parts = rawContent
+                .map(part => {
+                    if (typeof part === 'string') return part;
+
+                    // Text-only parts
+                    if (part?.type === 'text' && part?.text) {
+                        return typeof part.text === 'string' ? part.text : part.text?.value;
+                    }
+
+                    // New OpenAI format: { type: 'output_text', text: { value } }
+                    if (part?.type === 'output_text') {
+                        if (typeof part.text === 'string') return part.text;
+                        if (part.text?.value) return part.text.value;
+                    }
+
+                    // Fallback for any other shapes that contain a text field
+                    if (typeof part?.text === 'string') return part.text;
+                    if (part?.text?.value) return part.text.value;
+                    return '';
+                })
+                .filter(Boolean);
+
+            return parts.length ? parts.join(' ') : null;
+        }
+
+        return null;
     }
 
     /**
