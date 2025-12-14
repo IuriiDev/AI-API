@@ -82,7 +82,10 @@ module.exports = {
                 vision: 'gemini-2.5-flash'
             },
             availableModels: [
-                { id: 'gemini-2.5-flash', displayName: 'Gemini 2.5 Flash', description: 'Multimodal reasoning' }
+                { id: 'gemini-3-pro-preview', displayName: 'Gemini 3 Pro (Preview)', description: 'Most capable multimodal' },
+                { id: 'gemini-2.5-pro', displayName: 'Gemini 2.5 Pro', description: 'High-quality reasoning' },
+                { id: 'gemini-2.5-flash', displayName: 'Gemini 2.5 Flash', description: 'Fast multimodal reasoning' },
+                { id: 'gemini-2.5-flash-lite', displayName: 'Gemini 2.5 Flash Lite', description: 'Lightweight, cost-efficient' }
             ],
             defaultModel: 'gemini-2.5-flash',
             defaults: {

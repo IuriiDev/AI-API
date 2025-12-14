@@ -3,10 +3,13 @@
  * 
  * API: https://generativelanguage.googleapis.com/v1beta
  * Auth: API key in URL parameter (not header)
- * 
+ *
  * Models:
+ * - gemini-3-pro-preview (multimodal)
+ * - gemini-2.5-pro (multimodal)
  * - gemini-2.5-flash (multimodal, 1M context)
- * 
+ * - gemini-2.5-flash-lite (multimodal)
+ *
  * Note: Uses different format from OpenAI:
  * - 'contents' instead of 'messages'
  * - 'parts' with 'text' and 'inline_data'
