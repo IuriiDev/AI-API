@@ -65,7 +65,6 @@ class OpenAIProvider extends BaseProvider {
 
         const response = await axios.post(url, payload, {
             headers: this.getHeaders(),
-            timeout: this.timeouts.requestMs * 3, // Longer timeout for streaming
             responseType: 'stream'
         });
 

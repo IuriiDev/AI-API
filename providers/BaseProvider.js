@@ -89,7 +89,7 @@ class BaseProvider {
     }
 
     /**
-     * Make POST request with retry logic and timeout
+     * Make POST request with retry logic
      * @param {string} url - Request URL
      * @param {Object} payload - Request body
      * @param {Object} [options] - Additional axios options
@@ -100,7 +100,6 @@ class BaseProvider {
         try {
             const response = await axios.post(url, payload, {
                 headers: this.getHeaders(),
-                timeout: this.timeouts.requestMs,
                 ...options
             });
             return response;

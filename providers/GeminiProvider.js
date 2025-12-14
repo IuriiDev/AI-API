@@ -60,10 +60,8 @@ class GeminiProvider extends BaseProvider {
             }
         };
 
-        // Use shared retry logic with custom options (no auth header, key in URL)
         const response = await axios.post(url, payload, {
-            headers: this.getHeaders(),
-            timeout: this.timeouts.requestMs
+            headers: this.getHeaders()
         });
 
         return this.formatChatResponse(response.data);
@@ -97,8 +95,7 @@ class GeminiProvider extends BaseProvider {
         };
 
         const response = await axios.post(url, payload, {
-            headers: this.getHeaders(),
-            timeout: this.timeouts.requestMs
+            headers: this.getHeaders()
         });
 
         return this.formatChatResponse(response.data);

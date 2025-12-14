@@ -36,7 +36,7 @@ class GrokProvider extends BaseProvider {
             max_tokens: maxTokens || this.defaults.maxTokens
         };
 
-        // Use inherited requestWithRetry (includes timeout and retry logic)
+        // Use inherited requestWithRetry (includes retry logic)
         const response = await this.requestWithRetry(url, payload);
         return this.formatChatResponse(response.data);
     }
