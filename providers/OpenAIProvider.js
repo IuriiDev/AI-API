@@ -27,6 +27,8 @@ class OpenAIProvider extends BaseProvider {
     async chat({ messages, model, maxCompletionTokens, image }) {
         const url = this.buildUrl(this.endpoints.chat);
 
+        const maxTokens = maxCompletionTokens || this.defaults.maxCompletionTokens;
+
         // If image provided, transform last user message for vision
         let formattedMessages = messages;
         if (image) {
@@ -34,9 +36,12 @@ class OpenAIProvider extends BaseProvider {
         }
 
         const payload = {
-            model: image ? this.models.vision : (model || this.models.vision),
+            model: image ? this.models.vision : (model || this.models.chat),
             messages: formattedMessages,
-            max_completion_tokens: maxCompletionTokens || this.defaults.maxCompletionTokens
+            // Support both legacy and new token parameters from the latest OpenAI docs
+            // to avoid silent truncation or validation errors on different models.
+            max_tokens: maxTokens,
+            max_completion_tokens: maxTokens
         };
 
         const response = await axios.post(url, payload, {
@@ -81,6 +86,8 @@ class OpenAIProvider extends BaseProvider {
     async analyzeImage({ image, prompt, maxCompletionTokens }) {
         const url = this.buildUrl(this.endpoints.chat);
 
+        const maxTokens = maxCompletionTokens || this.defaults.maxCompletionTokens;
+
         const payload = {
             model: this.models.vision,
             messages: [
@@ -97,7 +104,8 @@ class OpenAIProvider extends BaseProvider {
                     ]
                 }
             ],
-            max_completion_tokens: maxCompletionTokens || this.defaults.maxCompletionTokens
+            max_tokens: maxTokens,
+            max_completion_tokens: maxTokens
         };
 
         const response = await axios.post(url, payload, {
@@ -133,15 +141,50 @@ class OpenAIProvider extends BaseProvider {
      * Format chat/vision response to standardized structure
      */
     formatChatResponse(data) {
+        const rawContent = data.choices?.[0]?.message?.content;
+
+        // OpenAI may return a string or an array of content parts (per latest docs)
+        const formattedContent = this.normalizeContent(rawContent);
+
         return {
             provider: this.name,
             id: data.id,
             model: data.model,
-            content: data.choices?.[0]?.message?.content || null,
+            content: formattedContent || null,
             finishReason: data.choices?.[0]?.finish_reason,
             usage: data.usage,
             raw: data
         };
+    }
+
+    /**
+     * Normalize OpenAI message content into a plain string
+     * Handles the array-based content parts from the latest OpenAI API
+     */
+    normalizeContent(rawContent) {
+        if (!rawContent) return null;
+
+        if (typeof rawContent === 'string') return rawContent;
+
+        if (!Array.isArray(rawContent)) {
+            return rawContent?.text?.value || rawContent?.text || null;
+        }
+
+        const parts = rawContent
+            .map(part => {
+                if (typeof part === 'string') return part;
+
+                const text = part?.text;
+
+                // Latest OpenAI docs return { type: 'text' | 'output_text', text: '...' | { value, ... } }
+                if (typeof text === 'string') return text;
+                if (typeof text?.value === 'string') return text.value;
+
+                return null;
+            })
+            .filter(Boolean);
+
+        return parts.length ? parts.join(' ') : null;
     }
 
     /**
