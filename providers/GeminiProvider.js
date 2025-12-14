@@ -5,8 +5,7 @@
  * Auth: API key in URL parameter (not header)
  * 
  * Models:
- * - gemini-3-pro (most advanced, multimodal)
- * - gemini-2.5-flash (1M context, balanced)
+ * - gemini-2.5-flash (multimodal, 1M context)
  * 
  * Note: Uses different format from OpenAI:
  * - 'contents' instead of 'messages'
@@ -18,9 +17,6 @@ const axios = require('axios');
 const BaseProvider = require('./BaseProvider');
 
 class GeminiProvider extends BaseProvider {
-    constructor(config) {
-        super(config);
-    }
 
     getCapabilities() {
         return ['chat', 'vision'];
@@ -28,6 +24,7 @@ class GeminiProvider extends BaseProvider {
 
     /**
      * Get headers - Gemini uses API key in URL, not header
+     * @returns {Object} HTTP headers
      */
     getHeaders() {
         return {
@@ -36,7 +33,9 @@ class GeminiProvider extends BaseProvider {
     }
 
     /**
-     * Build URL with API key
+     * Build Gemini URL with model and API key
+     * @param {string} model - Model name
+     * @returns {string} Full URL
      */
     buildGeminiUrl(model) {
         return `${this.baseUrl}/models/${model}:generateContent?key=${this.apiKey}`;
@@ -44,6 +43,8 @@ class GeminiProvider extends BaseProvider {
 
     /**
      * Chat completion (with optional vision support)
+     * @param {import('./BaseProvider').ChatParams} params
+     * @returns {Promise<import('./BaseProvider').ChatResponse>}
      */
     async chat({ messages, model, maxCompletionTokens, image }) {
         const modelName = image ? this.models.vision : (model || this.models.chat);
@@ -59,8 +60,10 @@ class GeminiProvider extends BaseProvider {
             }
         };
 
+        // Use shared retry logic with custom options (no auth header, key in URL)
         const response = await axios.post(url, payload, {
-            headers: this.getHeaders()
+            headers: this.getHeaders(),
+            timeout: this.timeouts.requestMs
         });
 
         return this.formatChatResponse(response.data);
@@ -68,10 +71,11 @@ class GeminiProvider extends BaseProvider {
 
     /**
      * Image analysis using vision model
+     * @param {Object} params - { image, prompt, maxCompletionTokens }
+     * @returns {Promise<import('./BaseProvider').ChatResponse>}
      */
     async analyzeImage({ image, prompt, maxCompletionTokens }) {
-        const modelName = this.models.vision;
-        const url = this.buildGeminiUrl(modelName);
+        const url = this.buildGeminiUrl(this.models.vision);
 
         const payload = {
             contents: [
@@ -93,7 +97,8 @@ class GeminiProvider extends BaseProvider {
         };
 
         const response = await axios.post(url, payload, {
-            headers: this.getHeaders()
+            headers: this.getHeaders(),
+            timeout: this.timeouts.requestMs
         });
 
         return this.formatChatResponse(response.data);
@@ -101,7 +106,9 @@ class GeminiProvider extends BaseProvider {
 
     /**
      * Convert OpenAI message format to Gemini format
-     * Optionally adds image as inline_data to last user message
+     * @param {Array} messages - OpenAI format messages
+     * @param {string} [image] - Base64 encoded image
+     * @returns {Array} Gemini format contents
      */
     convertToGeminiFormat(messages, image) {
         const contents = messages.map(msg => ({
@@ -128,7 +135,9 @@ class GeminiProvider extends BaseProvider {
     }
 
     /**
-     * Format response to standardized structure
+     * Format Gemini response to standardized structure
+     * @param {Object} data - Raw Gemini response
+     * @returns {import('./BaseProvider').ChatResponse}
      */
     formatChatResponse(data) {
         const content = data.candidates?.[0]?.content?.parts?.[0]?.text || null;
@@ -150,4 +159,3 @@ class GeminiProvider extends BaseProvider {
 }
 
 module.exports = GeminiProvider;
-

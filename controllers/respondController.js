@@ -6,25 +6,35 @@
  * - Streaming via SSE
  * - Background job execution
  * 
- * Accepts both:
+ * Accepts:
  * - input: string (simple user text)
- * - messages: array (full conversation history for iOS app compatibility)
+ * - messages: array (conversation history)
+ * 
+ * @module controllers/respondController
  */
 
 const { getProvider } = require('../providers');
-const { APIError } = require('../middleware/errorHandler');
+const { APIError, ErrorCodes } = require('../middleware/errorHandler');
 const config = require('../config');
 const jobStore = require('../utils/jobStore');
 
+// ═══════════════════════════════════════════════════════════════════════════
+// UTILITIES
+// ═══════════════════════════════════════════════════════════════════════════
+
 /**
- * Generate unique request ID for logging
+ * Generate unique request ID for logging and tracking
+ * @returns {string}
  */
 function generateRequestId() {
     return `req_${Date.now().toString(36)}_${Math.random().toString(36).substr(2, 9)}`;
 }
 
 /**
- * Log request (without user content by default)
+ * Log request (without user content by default for privacy)
+ * @param {string} requestId
+ * @param {string} action
+ * @param {Object} details
  */
 function logRequest(requestId, action, details = {}) {
     const logEntry = {
@@ -44,8 +54,9 @@ function logRequest(requestId, action, details = {}) {
 }
 
 /**
- * Extract output text from OpenAI response
- * Helper function for consistent text extraction
+ * Extract output text from provider response
+ * @param {Object} response - Provider response
+ * @returns {string|null}
  */
 function extractOutputText(response) {
     return response?.content ||
@@ -53,21 +64,21 @@ function extractOutputText(response) {
         null;
 }
 
+// ═══════════════════════════════════════════════════════════════════════════
+// MAIN HANDLER
+// ═══════════════════════════════════════════════════════════════════════════
+
 /**
  * POST /ai/respond
  * 
- * Body (option 1 - simple):
- * - input: string (user text)
- * 
- * Body (option 2 - conversation, iOS app compatible):
- * - messages: array of { role, content }
- * 
- * Common options:
- * - model: string (optional)
- * - stream: boolean (optional, default: false)
- * - background: boolean (optional, default: false)
- * - provider: string (optional, default: 'openai')
- * - image: string (optional, base64 encoded image)
+ * @param {Object} req.body
+ * @param {string} [req.body.input] - Simple user text
+ * @param {Array} [req.body.messages] - Conversation array [{role, content}]
+ * @param {string} [req.body.model] - Model override
+ * @param {string} [req.body.provider='openai'] - Provider name
+ * @param {string} [req.body.image] - Base64 encoded image
+ * @param {boolean} [req.body.stream=false] - Enable SSE streaming
+ * @param {boolean} [req.body.background=false] - Run as background job
  */
 async function handleRespond(req, res) {
     const requestId = generateRequestId();
@@ -81,31 +92,8 @@ async function handleRespond(req, res) {
         image
     } = req.body;
 
-    // Accept either 'input' (simple string) or 'messages' (conversation array)
-    let messages;
-
-    if (inputMessages && Array.isArray(inputMessages) && inputMessages.length > 0) {
-        // iOS app format: messages array
-        messages = inputMessages;
-    } else if (input && typeof input === 'string') {
-        // Simple format: just input string
-        const trimmedInput = input.trim();
-
-        if (trimmedInput.length < config.validation.minInputLength) {
-            throw new APIError('Invalid request: input cannot be empty', 400);
-        }
-
-        if (trimmedInput.length > config.validation.maxInputLength) {
-            throw new APIError(
-                `Invalid request: input exceeds maximum length of ${config.validation.maxInputLength} characters`,
-                400
-            );
-        }
-
-        messages = [{ role: 'user', content: trimmedInput }];
-    } else {
-        throw new APIError('Invalid request: either input string or messages array is required', 400);
-    }
+    // Parse input: accept either 'input' string or 'messages' array
+    const messages = parseInput(input, inputMessages);
 
     logRequest(requestId, 'REQUEST_RECEIVED', {
         model,
@@ -118,48 +106,88 @@ async function handleRespond(req, res) {
 
     const provider = getProvider(providerName);
 
-    // Background mode: create job and return immediately
+    // Route to appropriate handler
     if (background) {
         return handleBackgroundJob(req, res, { requestId, messages, model, provider, image });
     }
 
-    // Streaming mode: SSE response
     if (stream) {
         return handleStreamingResponse(req, res, { requestId, messages, model, provider, image });
     }
 
-    // Synchronous mode: wait for complete response
     return handleSyncResponse(req, res, { requestId, messages, model, provider, image });
 }
+
+/**
+ * Parse and validate input from request body
+ * @param {string} input - Simple input string
+ * @param {Array} messages - Messages array
+ * @returns {Array} Validated messages array
+ * @throws {APIError} If input is invalid
+ */
+function parseInput(input, messages) {
+    // Option 1: Messages array (iOS/Web app format)
+    if (messages && Array.isArray(messages) && messages.length > 0) {
+        return messages;
+    }
+
+    // Option 2: Simple input string
+    if (input && typeof input === 'string') {
+        const trimmed = input.trim();
+
+        if (trimmed.length < config.validation.minInputLength) {
+            throw new APIError(
+                'Input cannot be empty',
+                400,
+                ErrorCodes.INPUT_REQUIRED
+            );
+        }
+
+        if (trimmed.length > config.validation.maxInputLength) {
+            throw new APIError(
+                `Input exceeds maximum length of ${config.validation.maxInputLength} characters`,
+                400,
+                ErrorCodes.INPUT_TOO_LONG
+            );
+        }
+
+        return [{ role: 'user', content: trimmed }];
+    }
+
+    throw new APIError(
+        'Either input string or messages array is required',
+        400,
+        ErrorCodes.INPUT_REQUIRED
+    );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// RESPONSE HANDLERS
+// ═══════════════════════════════════════════════════════════════════════════
 
 /**
  * Handle synchronous (blocking) response
  */
 async function handleSyncResponse(req, res, { requestId, messages, model, provider, image }) {
-    try {
-        const result = await provider.chat({ messages, model, image });
-        const text = extractOutputText(result);
+    const result = await provider.chat({ messages, model, image });
+    const text = extractOutputText(result);
 
-        logRequest(requestId, 'RESPONSE_COMPLETED', {
-            responseId: result.id,
-            model: result.model,
-            textLength: text?.length
-        });
+    logRequest(requestId, 'RESPONSE_COMPLETED', {
+        responseId: result.id,
+        model: result.model,
+        textLength: text?.length
+    });
 
-        res.json({
-            success: true,
-            text,
-            content: text, // iOS app compatibility
-            id: result.id,
-            model: result.model,
-            provider: result.provider,
-            usage: result.usage,
-            raw: result.raw
-        });
-    } catch (error) {
-        logRequest(requestId, 'RESPONSE_ERROR', { error: error.message });
-        throw error;
-    }
+    res.json({
+        success: true,
+        text,
+        content: text, // iOS app compatibility
+        id: result.id,
+        model: result.model,
+        provider: result.provider,
+        usage: result.usage,
+        raw: result.raw
+    });
 }
 
 /**
@@ -174,22 +202,18 @@ async function handleStreamingResponse(req, res, { requestId, messages, model, p
     res.flushHeaders();
 
     try {
-        // Check if provider supports streaming
         if (typeof provider.chatStream === 'function') {
-            await provider.chatStream({ messages, model }, (chunk) => {
+            await provider.chatStream({ messages, model, image }, (chunk) => {
                 res.write(`data: ${JSON.stringify({ text: chunk })}\n\n`);
             });
         } else {
-            // Fallback: non-streaming response sent as single chunk
+            // Fallback: non-streaming response as single chunk
             const result = await provider.chat({ messages, model, image });
-            const text = extractOutputText(result);
-            res.write(`data: ${JSON.stringify({ text })}\n\n`);
+            res.write(`data: ${JSON.stringify({ text: extractOutputText(result) })}\n\n`);
         }
 
-        // Send completion signal
         res.write(`data: ${JSON.stringify({ done: true })}\n\n`);
         res.end();
-
         logRequest(requestId, 'STREAM_COMPLETED');
     } catch (error) {
         res.write(`data: ${JSON.stringify({ error: error.message })}\n\n`);
@@ -202,23 +226,18 @@ async function handleStreamingResponse(req, res, { requestId, messages, model, p
  * Handle background job execution
  */
 async function handleBackgroundJob(req, res, { requestId, messages, model, provider, image }) {
-    // Get input summary for job store
     const lastMessage = messages[messages.length - 1];
-    const inputSummary = lastMessage?.content || '';
-
-    // Create job entry
-    const job = jobStore.createJob(inputSummary, model);
+    const job = jobStore.createJob(lastMessage?.content || '', model);
 
     logRequest(requestId, 'JOB_CREATED', { jobId: job.id });
 
-    // Return job ID immediately
     res.json({
         success: true,
         job_id: job.id,
         status: job.status
     });
 
-    // Process in background (don't await)
+    // Process in background (fire and forget)
     processBackgroundJob(job.id, messages, model, provider, image, requestId);
 }
 

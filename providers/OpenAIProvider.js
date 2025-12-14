@@ -4,22 +4,17 @@
  * Implements: Single Responsibility & Liskov Substitution (SOLID)
  * 
  * Supports:
- * - Chat completions (GPT-4o, GPT-4o-mini, etc.)
- * - Streaming responses
+ * - Chat completions (GPT-5.2, GPT-5-mini, GPT-5-nano)
+ * - Streaming responses (SSE)
  * - Image analysis/vision
- * - Image generation (DALL-E 3)
- * - Retry logic with exponential backoff
+ * - Image generation (gpt-image-1)
+ * - Retry logic with exponential backoff (inherited from BaseProvider)
  */
 
 const axios = require('axios');
 const BaseProvider = require('./BaseProvider');
-const config = require('../config');
 
 class OpenAIProvider extends BaseProvider {
-    constructor(providerConfig) {
-        super(providerConfig);
-        this.timeouts = config.timeouts;
-    }
 
     getCapabilities() {
         return ['chat', 'vision', 'imageGeneration', 'streaming'];
@@ -27,16 +22,16 @@ class OpenAIProvider extends BaseProvider {
 
     /**
      * Chat completion (with optional vision support)
-     * Includes retry logic for transient failures
+     * @param {import('./BaseProvider').ChatParams} params
+     * @returns {Promise<import('./BaseProvider').ChatResponse>}
      */
     async chat({ messages, model, maxCompletionTokens, image }) {
         const url = this.buildUrl(this.endpoints.chat);
 
-        // If image provided, transform last user message for vision
-        let formattedMessages = messages;
-        if (image) {
-            formattedMessages = this.formatMessagesWithImage(messages, image);
-        }
+        // If image provided, transform messages for vision
+        const formattedMessages = image
+            ? this.formatMessagesWithImage(messages, image)
+            : messages;
 
         const payload = {
             model: image ? this.models.vision : (model || this.models.chat),
@@ -49,62 +44,21 @@ class OpenAIProvider extends BaseProvider {
     }
 
     /**
-     * Make request with retry logic and timeout
+     * Streaming chat completion with vision support
+     * @param {import('./BaseProvider').ChatParams} params
+     * @param {Function} onChunk - Callback for each text chunk
      */
-    async requestWithRetry(url, payload, attempt = 1) {
-        try {
-            const response = await axios.post(url, payload, {
-                headers: this.getHeaders(),
-                timeout: this.timeouts.requestMs
-            });
-            return response;
-        } catch (error) {
-            // Only retry on transient errors
-            const isRetryable = this.isRetryableError(error);
-            const canRetry = attempt < this.timeouts.retryAttempts;
-
-            if (isRetryable && canRetry) {
-                const delay = this.timeouts.retryDelayMs * Math.pow(2, attempt - 1);
-                console.log(`[OpenAI] Retry attempt ${attempt + 1} after ${delay}ms`);
-                await this.sleep(delay);
-                return this.requestWithRetry(url, payload, attempt + 1);
-            }
-
-            throw error;
-        }
-    }
-
-    /**
-     * Check if error is retryable
-     */
-    isRetryableError(error) {
-        if (!error.response) {
-            // Network errors are retryable
-            return true;
-        }
-
-        const status = error.response.status;
-        // Retry on 429 (rate limit), 500, 502, 503, 504
-        return [429, 500, 502, 503, 504].includes(status);
-    }
-
-    /**
-     * Sleep helper for retry delay
-     */
-    sleep(ms) {
-        return new Promise(resolve => setTimeout(resolve, ms));
-    }
-
-    /**
-     * Streaming chat completion
-     * Calls onChunk callback for each text chunk
-     */
-    async chatStream({ messages, model, maxCompletionTokens }, onChunk) {
+    async chatStream({ messages, model, maxCompletionTokens, image }, onChunk) {
         const url = this.buildUrl(this.endpoints.chat);
 
+        // If image provided, transform messages for vision
+        const formattedMessages = image
+            ? this.formatMessagesWithImage(messages, image)
+            : messages;
+
         const payload = {
-            model: model || this.models.chat,
-            messages,
+            model: image ? this.models.vision : (model || this.models.chat),
+            messages: formattedMessages,
             max_completion_tokens: maxCompletionTokens || this.defaults.maxCompletionTokens,
             stream: true
         };
@@ -123,70 +77,33 @@ class OpenAIProvider extends BaseProvider {
 
                 // Process complete SSE messages
                 const lines = buffer.split('\n');
-                buffer = lines.pop() || ''; // Keep incomplete line in buffer
+                buffer = lines.pop() || '';
 
                 for (const line of lines) {
                     if (line.startsWith('data: ')) {
                         const data = line.slice(6);
-
-                        if (data === '[DONE]') {
-                            continue;
-                        }
+                        if (data === '[DONE]') continue;
 
                         try {
                             const parsed = JSON.parse(data);
                             const content = parsed.choices?.[0]?.delta?.content;
-                            if (content) {
-                                onChunk(content);
-                            }
-                        } catch (e) {
+                            if (content) onChunk(content);
+                        } catch {
                             // Skip malformed JSON
                         }
                     }
                 }
             });
 
-            response.data.on('end', () => {
-                resolve();
-            });
-
-            response.data.on('error', (error) => {
-                reject(error);
-            });
+            response.data.on('end', resolve);
+            response.data.on('error', reject);
         });
     }
 
     /**
-     * Format messages with image for vision
-     * Converts last user message to multimodal content array
-     */
-    formatMessagesWithImage(messages, image) {
-        const formatted = [...messages];
-
-        // Find last user message
-        for (let i = formatted.length - 1; i >= 0; i--) {
-            if (formatted[i].role === 'user') {
-                formatted[i] = {
-                    role: 'user',
-                    content: [
-                        { type: 'text', text: formatted[i].content },
-                        {
-                            type: 'image_url',
-                            image_url: {
-                                url: this.getBase64ImageUrl(image)
-                            }
-                        }
-                    ]
-                };
-                break;
-            }
-        }
-
-        return formatted;
-    }
-
-    /**
      * Image analysis using vision model
+     * @param {Object} params - { image, prompt, maxCompletionTokens }
+     * @returns {Promise<import('./BaseProvider').ChatResponse>}
      */
     async analyzeImage({ image, prompt, maxCompletionTokens }) {
         const url = this.buildUrl(this.endpoints.chat);
@@ -200,9 +117,7 @@ class OpenAIProvider extends BaseProvider {
                         { type: 'text', text: prompt },
                         {
                             type: 'image_url',
-                            image_url: {
-                                url: this.getBase64ImageUrl(image)
-                            }
+                            image_url: { url: this.getBase64ImageUrl(image) }
                         }
                     ]
                 }
@@ -215,9 +130,11 @@ class OpenAIProvider extends BaseProvider {
     }
 
     /**
-     * Image generation using DALL-E
+     * Image generation using gpt-image-1
+     * @param {Object} params - { prompt, size, quality, count }
+     * @returns {Promise<Object>}
      */
-    async generateImage({ prompt, size, quality, outputFormat, count }) {
+    async generateImage({ prompt, size, quality, count }) {
         const url = this.buildUrl(this.endpoints.imageGeneration);
 
         const payload = {
@@ -234,7 +151,9 @@ class OpenAIProvider extends BaseProvider {
     }
 
     /**
-     * Format chat/vision response to standardized structure
+     * Format chat response to standardized structure
+     * @param {Object} data - Raw OpenAI response
+     * @returns {import('./BaseProvider').ChatResponse}
      */
     formatChatResponse(data) {
         return {
@@ -243,13 +162,19 @@ class OpenAIProvider extends BaseProvider {
             model: data.model,
             content: data.choices?.[0]?.message?.content || null,
             finishReason: data.choices?.[0]?.finish_reason,
-            usage: data.usage,
+            usage: {
+                promptTokens: data.usage?.prompt_tokens,
+                completionTokens: data.usage?.completion_tokens,
+                totalTokens: data.usage?.total_tokens
+            },
             raw: data
         };
     }
 
     /**
-     * Format image generation response to standardized structure
+     * Format image generation response
+     * @param {Object} data - Raw OpenAI response
+     * @returns {Object}
      */
     formatImageResponse(data) {
         const images = data.data?.map(item => item.b64_json) || [];

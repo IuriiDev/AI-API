@@ -1,47 +1,55 @@
 /**
  * Job Controller
  * 
- * Handles polling for background job status
+ * Handles background job status polling
+ * 
+ * @module controllers/jobController
  */
 
 const jobStore = require('../utils/jobStore');
-const { APIError } = require('../middleware/errorHandler');
+const { APIError, ErrorCodes } = require('../middleware/errorHandler');
 
 /**
  * GET /ai/jobs/:job_id
  * 
- * Returns job status and result if complete
+ * Poll background job status
+ * 
+ * @param {Object} req.params.job_id - Job ID to check
+ * @returns {Object} Job status and result
  */
 async function handleGetJob(req, res) {
     const { job_id } = req.params;
 
     if (!job_id) {
-        throw new APIError('Job ID is required', 400);
+        throw new APIError('Job ID is required', 400, ErrorCodes.INVALID_INPUT);
     }
 
     const job = jobStore.getJob(job_id);
 
     if (!job) {
-        throw new APIError('Job not found', 404);
+        throw new APIError(
+            `Job not found: ${job_id}`,
+            404,
+            ErrorCodes.JOB_NOT_FOUND
+        );
     }
 
     const response = {
         success: true,
         job_id: job.id,
-        status: job.status
+        status: job.status,
+        createdAt: job.createdAt,
+        updatedAt: job.updatedAt
     };
 
-    // Include text if completed
-    if (job.status === jobStore.JobStatus.COMPLETED) {
-        response.text = job.text;
-        // Optionally include raw response
-        if (req.query.include_raw === 'true') {
-            response.raw = job.raw;
-        }
+    // Include result for completed jobs
+    if (job.status === 'completed') {
+        response.text = job.result;
+        response.content = job.result; // iOS compatibility
     }
 
-    // Include error if failed
-    if (job.status === jobStore.JobStatus.FAILED) {
+    // Include error for failed jobs
+    if (job.status === 'failed') {
         response.error = job.error;
     }
 

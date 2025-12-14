@@ -7,6 +7,8 @@
  * 1. Create new provider class extending BaseProvider
  * 2. Add configuration in config/index.js
  * 3. Register provider in this factory
+ * 
+ * @module providers
  */
 
 const config = require('../config');
@@ -14,22 +16,29 @@ const OpenAIProvider = require('./OpenAIProvider');
 const GeminiProvider = require('./GeminiProvider');
 const GrokProvider = require('./GrokProvider');
 
-// Provider registry - maps provider names to their classes
+/**
+ * Provider registry - maps provider names to their classes
+ * @type {Object<string, typeof import('./BaseProvider')>}
+ */
 const providerRegistry = {
     openai: OpenAIProvider,
     gemini: GeminiProvider,
     grok: GrokProvider
 };
 
-// Provider instances cache (singleton per provider)
+/**
+ * Provider instances cache (singleton per provider)
+ * @type {Object<string, import('./BaseProvider')>}
+ */
 const providerInstances = {};
 
 /**
  * Get provider instance by name
  * Uses singleton pattern - creates instance once and reuses
  * 
- * @param {string} providerName - Provider identifier (openai, gemini, grok, deepseek)
- * @returns {BaseProvider} - Provider instance
+ * @param {string} [providerName='openai'] - Provider identifier
+ * @returns {import('./BaseProvider')} Provider instance
+ * @throws {Error} If provider is unknown or not configured
  */
 function getProvider(providerName = 'openai') {
     const name = providerName.toLowerCase();
@@ -42,7 +51,8 @@ function getProvider(providerName = 'openai') {
     // Get provider class from registry
     const ProviderClass = providerRegistry[name];
     if (!ProviderClass) {
-        throw new Error(`Unknown provider: ${providerName}. Available: ${getAvailableProviders().join(', ')}`);
+        const available = getAvailableProviders().join(', ');
+        throw new Error(`Unknown provider: ${providerName}. Available: ${available}`);
     }
 
     // Get provider config
@@ -53,17 +63,18 @@ function getProvider(providerName = 'openai') {
 
     // Check if API key is configured
     if (!providerConfig.apiKey) {
-        throw new Error(`API key not configured for ${providerName}. Set ${name.toUpperCase()}_API_KEY environment variable.`);
+        const envVar = `${name.toUpperCase()}_API_KEY`;
+        throw new Error(`API key not configured for ${providerName}. Set ${envVar} environment variable.`);
     }
 
     // Create and cache instance
     providerInstances[name] = new ProviderClass(providerConfig);
-
     return providerInstances[name];
 }
 
 /**
  * Get list of available (registered) providers
+ * @returns {string[]}
  */
 function getAvailableProviders() {
     return Object.keys(providerRegistry);
@@ -71,6 +82,7 @@ function getAvailableProviders() {
 
 /**
  * Get list of configured providers (with API keys)
+ * @returns {string[]}
  */
 function getConfiguredProviders() {
     return getAvailableProviders().filter(name => {
@@ -81,6 +93,9 @@ function getConfiguredProviders() {
 
 /**
  * Check if provider supports a capability
+ * @param {string} providerName
+ * @param {string} capability
+ * @returns {boolean}
  */
 function providerSupports(providerName, capability) {
     try {
@@ -92,8 +107,8 @@ function providerSupports(providerName, capability) {
 }
 
 /**
- * Get list of configured models with display info (hierarchical)
- * Returns providers with their available models
+ * Get configured models with display info (hierarchical)
+ * @returns {Array<{id: string, name: string, models: Array, defaultModel: string}>}
  */
 function getConfiguredModels() {
     return getConfiguredProviders().map(providerId => {
@@ -107,7 +122,6 @@ function getConfiguredModels() {
     });
 }
 
-
 module.exports = {
     getProvider,
     getAvailableProviders,
@@ -115,5 +129,3 @@ module.exports = {
     getConfiguredModels,
     providerSupports
 };
-
-
