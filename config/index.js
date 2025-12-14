@@ -34,7 +34,7 @@ module.exports = {
             ],
             defaultModel: 'gpt-5-nano',
             defaults: {
-                maxCompletionTokens: 4096
+                maxTokens: 4096
             }
         },
 
