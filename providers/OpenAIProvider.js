@@ -4,11 +4,9 @@
  * Implements: Single Responsibility & Liskov Substitution (SOLID)
  * 
  * Supports:
- * - Responses API (GPT-5.2, GPT-5-mini, GPT-5-nano)
+ * - Chat completions (GPT-5-nano, GPT-4o, etc.)
  * - Image analysis/vision
  * - Image generation (gpt-image-1)
- * 
- * Note: Uses the new Responses API (March 2025) instead of Chat Completions API
  */
 
 const axios = require('axios');
@@ -24,88 +22,89 @@ class OpenAIProvider extends BaseProvider {
     }
 
     /**
-     * Chat using Responses API (GPT-5 models)
-     * Converts messages array to input string for the new API format
+     * Chat completion (with optional vision support)
      */
     async chat({ messages, model, maxCompletionTokens, image }) {
-        const url = this.buildUrl(this.endpoints.responses);
+        const url = this.buildUrl(this.endpoints.chat);
 
-        // Convert messages array to input format for Responses API
-        let input;
+        // If image provided, transform last user message for vision
+        let formattedMessages = messages;
         if (image) {
-            // For vision: use multimodal input format
-            input = this.formatInputWithImage(messages, image);
-        } else {
-            // For text only: use messages format (Responses API supports both)
-            input = messages;
+            formattedMessages = this.formatMessagesWithImage(messages, image);
         }
 
         const payload = {
-            model: image ? this.models.vision : (model || this.models.chat),
-            input: input
+            model: image ? this.models.vision : (model || this.models.vision),
+            messages: formattedMessages,
+            max_completion_tokens: maxCompletionTokens || this.defaults.maxCompletionTokens
         };
-
-        // Add max_output_tokens if specified (optional for Responses API)
-        if (maxCompletionTokens || this.defaults.maxCompletionTokens) {
-            payload.max_output_tokens = maxCompletionTokens || this.defaults.maxCompletionTokens;
-        }
 
         const response = await axios.post(url, payload, {
             headers: this.getHeaders()
         });
 
-        return this.formatResponsesAPIResponse(response.data);
+        return this.formatChatResponse(response.data);
     }
 
     /**
-     * Format input with image for vision (Responses API format)
+     * Format messages with image for vision
+     * Converts last user message to multimodal content array
      */
-    formatInputWithImage(messages, image) {
-        // Get the last user message text
-        let userText = '';
-        for (let i = messages.length - 1; i >= 0; i--) {
-            if (messages[i].role === 'user') {
-                userText = messages[i].content;
+    formatMessagesWithImage(messages, image) {
+        const formatted = [...messages];
+
+        // Find last user message
+        for (let i = formatted.length - 1; i >= 0; i--) {
+            if (formatted[i].role === 'user') {
+                formatted[i] = {
+                    role: 'user',
+                    content: [
+                        { type: 'text', text: formatted[i].content },
+                        {
+                            type: 'image_url',
+                            image_url: {
+                                url: this.getBase64ImageUrl(image)
+                            }
+                        }
+                    ]
+                };
                 break;
             }
         }
 
-        // Return multimodal input array for Responses API
-        return [
-            { type: 'input_text', text: userText },
-            {
-                type: 'input_image',
-                image_url: this.getBase64ImageUrl(image)
-            }
-        ];
+        return formatted;
     }
 
     /**
-     * Image analysis using vision model (Responses API)
+     * Image analysis using vision model
      */
     async analyzeImage({ image, prompt, maxCompletionTokens }) {
-        const url = this.buildUrl(this.endpoints.responses);
+        const url = this.buildUrl(this.endpoints.chat);
 
         const payload = {
             model: this.models.vision,
-            input: [
-                { type: 'input_text', text: prompt },
+            messages: [
                 {
-                    type: 'input_image',
-                    image_url: this.getBase64ImageUrl(image)
+                    role: 'user',
+                    content: [
+                        { type: 'text', text: prompt },
+                        {
+                            type: 'image_url',
+                            image_url: {
+                                url: this.getBase64ImageUrl(image)
+                            }
+                        }
+                    ]
                 }
-            ]
+            ],
+            max_completion_tokens: maxCompletionTokens || this.defaults.maxCompletionTokens
         };
-
-        if (maxCompletionTokens || this.defaults.maxCompletionTokens) {
-            payload.max_output_tokens = maxCompletionTokens || this.defaults.maxCompletionTokens;
-        }
 
         const response = await axios.post(url, payload, {
             headers: this.getHeaders()
         });
 
-        return this.formatResponsesAPIResponse(response.data);
+        return this.formatChatResponse(response.data);
     }
 
     /**
@@ -131,15 +130,15 @@ class OpenAIProvider extends BaseProvider {
     }
 
     /**
-     * Format Responses API response to standardized structure
+     * Format chat/vision response to standardized structure
      */
-    formatResponsesAPIResponse(data) {
+    formatChatResponse(data) {
         return {
             provider: this.name,
             id: data.id,
             model: data.model,
-            content: data.output_text || null,
-            finishReason: data.status,
+            content: data.choices?.[0]?.message?.content || null,
+            finishReason: data.choices?.[0]?.finish_reason,
             usage: data.usage,
             raw: data
         };
@@ -162,3 +161,4 @@ class OpenAIProvider extends BaseProvider {
 }
 
 module.exports = OpenAIProvider;
+

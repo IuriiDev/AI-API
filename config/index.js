@@ -17,8 +17,7 @@ module.exports = {
             baseUrl: 'https://api.openai.com/v1',
             apiKey: process.env.OPENAI_API_KEY,
             endpoints: {
-                responses: '/responses',  // New Responses API for GPT-5 models
-                chat: '/chat/completions', // Legacy Chat Completions API
+                chat: '/chat/completions',
                 imageGeneration: '/images/generations'
             },
             // Models used for API requests
