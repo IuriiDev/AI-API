@@ -38,9 +38,8 @@ class OpenAIProvider extends BaseProvider {
         const payload = {
             model: image ? this.models.vision : (model || this.models.chat),
             messages: formattedMessages,
-            // Support both legacy and new token parameters from the latest OpenAI docs
-            // to avoid silent truncation or validation errors on different models.
-            max_tokens: maxTokens,
+            // Per latest OpenAI docs, new ChatGPT models expect max_completion_tokens
+            // instead of the legacy max_tokens parameter.
             max_completion_tokens: maxTokens
         };
 
@@ -104,7 +103,6 @@ class OpenAIProvider extends BaseProvider {
                     ]
                 }
             ],
-            max_tokens: maxTokens,
             max_completion_tokens: maxTokens
         };
 
