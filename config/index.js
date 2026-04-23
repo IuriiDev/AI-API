@@ -130,15 +130,13 @@ module.exports = {
                 chat: '/chat/completions'
             },
             models: {
-                chat: 'deepseek-v3.2'
+                chat: 'deepseek-chat'
             },
             availableModels: [
                 { id: 'deepseek-chat', displayName: 'DeepSeek Chat', description: 'General-purpose conversational model' },
-                { id: 'deepseek-reasoner', displayName: 'DeepSeek Reasoner', description: 'Enhanced reasoning capabilities' },
-                { id: 'deepseek-v3.1', displayName: 'DeepSeek V3.1', description: 'Balanced performance model' },
-                { id: 'deepseek-v3.2', displayName: 'DeepSeek V3.2', description: 'Latest flagship model' }
+                { id: 'deepseek-reasoner', displayName: 'DeepSeek Reasoner', description: 'Enhanced reasoning capabilities' }
             ],
-            defaultModel: 'deepseek-v3.2',
+            defaultModel: 'deepseek-chat',
             defaults: {
                 maxTokens: 8192
             }
