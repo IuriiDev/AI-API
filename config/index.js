@@ -60,8 +60,10 @@ module.exports = {
             },
             // Models shown in UI dropdown
             availableModels: [
-                { id: 'gpt-5.2', displayName: 'ChatGPT 5.2', description: 'Most capable' },
-                { id: 'gpt-5-mini', displayName: 'ChatGPT 5 Mini', description: 'Balanced' },
+                { id: 'gpt-5.4', displayName: 'ChatGPT 5.4', description: 'Most capable' },
+                { id: 'gpt-5.4-mini', displayName: 'ChatGPT 5.4 Mini', description: 'Balanced' },
+                { id: 'gpt-5.4-nano', displayName: 'ChatGPT 5.4 Nano', description: 'Fast & efficient' },
+                { id: 'gpt-5', displayName: 'ChatGPT 5', description: 'Flagship' },
                 { id: 'gpt-5-nano', displayName: 'ChatGPT 5 Nano', description: 'Fast & efficient' }
             ],
             defaultModel: 'gpt-5-nano',
@@ -82,8 +84,9 @@ module.exports = {
                 vision: 'gemini-2.5-flash'
             },
             availableModels: [
-                { id: 'gemini-3-pro-preview', displayName: 'Gemini 3 Pro (Preview)', description: 'Most capable multimodal' },
-                { id: 'gemini-2.5-pro', displayName: 'Gemini 2.5 Pro', description: 'High-quality reasoning' },
+                { id: 'gemini-3.1-pro-preview', displayName: 'Gemini 3.1 Pro (Preview)', description: 'Most capable multimodal' },
+                { id: 'gemini-3-flash-preview', displayName: 'Gemini 3 Flash (Preview)', description: 'Fast multimodal' },
+                { id: 'gemini-3.1-flash-lite-preview', displayName: 'Gemini 3.1 Flash Lite (Preview)', description: 'Lightweight, cost-efficient' },
                 { id: 'gemini-2.5-flash', displayName: 'Gemini 2.5 Flash', description: 'Fast multimodal reasoning' },
                 { id: 'gemini-2.5-flash-lite', displayName: 'Gemini 2.5 Flash Lite', description: 'Lightweight, cost-efficient' }
             ],
@@ -105,6 +108,8 @@ module.exports = {
                 vision: 'grok-4-1-fast-non-reasoning'
             },
             availableModels: [
+                { id: 'grok-4.20-0309-reasoning', displayName: 'Grok 4.20 0309 (Reasoning)', description: 'Reasoning variant' },
+                { id: 'grok-4.20-0309-non-reasoning', displayName: 'Grok 4.20 0309 (Non-Reasoning)', description: 'Non-reasoning variant' },
                 { id: 'grok-4-1-fast-reasoning', displayName: 'Grok 4.1 Fast (Reasoning)', description: '2M context window' },
                 { id: 'grok-4-1-fast-non-reasoning', displayName: 'Grok 4.1 Fast (Non-Reasoning)', description: '2M context window' },
                 { id: 'grok-4-1', displayName: 'Grok 4.1', description: '2M context window' },

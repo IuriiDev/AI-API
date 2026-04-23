@@ -5,8 +5,9 @@
  * Auth: API key in URL parameter (not header)
  *
  * Models:
- * - gemini-3-pro-preview (multimodal)
- * - gemini-2.5-pro (multimodal)
+ * - gemini-3.1-pro-preview (multimodal, preview)
+ * - gemini-3-flash-preview (multimodal, preview)
+ * - gemini-3.1-flash-lite-preview (multimodal, preview)
  * - gemini-2.5-flash (multimodal, 1M context)
  * - gemini-2.5-flash-lite (multimodal)
  *
