@@ -54,8 +54,8 @@ module.exports = {
             },
             // Models used for API requests
             models: {
-                chat: 'gpt-5-nano',
-                vision: 'gpt-5-nano',
+                chat: 'gpt-5.4-nano',
+                vision: 'gpt-5.4-nano',
                 imageGeneration: 'gpt-image-1'
             },
             // Models shown in UI dropdown
@@ -66,7 +66,7 @@ module.exports = {
                 { id: 'gpt-5', displayName: 'ChatGPT 5', description: 'Flagship' },
                 { id: 'gpt-5-nano', displayName: 'ChatGPT 5 Nano', description: 'Fast & efficient' }
             ],
-            defaultModel: 'gpt-5-nano',
+            defaultModel: 'gpt-5.4-nano',
             defaults: {
                 maxCompletionTokens: 4096
             }
