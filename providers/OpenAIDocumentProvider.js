@@ -7,6 +7,7 @@ class OpenAIDocumentProvider extends BaseDocumentProvider {
     }
 
     async uploadFile(file) {
+        this.assertConfigured();
         const formData = new FormData();
         formData.append('purpose', 'user_data');
         formData.append(

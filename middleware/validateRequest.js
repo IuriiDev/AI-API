@@ -109,7 +109,9 @@ function validateProvider(req, res, next) {
             throw new APIError('Model must be text.', 400, ErrorCodes.INVALID_MODEL);
         }
         const providerConfig = config.providers[normalizedProvider];
-        const availableModels = providerConfig?.availableModels?.map(item => item.id) || [];
+        const availableModels = providerConfig?.availableModels
+            ?.filter(item => item.selectable !== false)
+            .map(item => item.id) || [];
         if (!availableModels.includes(model)) {
             throw new APIError(
                 `Invalid model ${model} for provider ${provider}.`,

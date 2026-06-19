@@ -60,6 +60,7 @@ class BaseDocumentProvider {
     }
 
     async requestAnalysis({ fileIds, prompt, responseSchema, schemaName, model }) {
+        this.assertConfigured();
         const content = [
             ...fileIds.map(fileId => ({ type: 'input_file', file_id: fileId })),
             { type: 'input_text', text: prompt }
@@ -94,6 +95,7 @@ class BaseDocumentProvider {
     }
 
     async deleteFile(fileId) {
+        this.assertConfigured();
         await this.requestJSON(
             `${this.baseUrl}${this.endpoints.files}/${encodeURIComponent(fileId)}`,
             {

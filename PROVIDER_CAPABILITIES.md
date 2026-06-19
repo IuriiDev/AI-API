@@ -13,6 +13,10 @@ The `/api/document-analysis` contract is provider-neutral. Adding another strate
 requires a provider implementation and registration in `providers/documentProviders.js`;
 clients do not need a product-specific backend route.
 
+Older model identifiers remain in each provider's `availableModels` catalog.
+Models retired by their provider are marked `selectable: false`; active legacy
+aliases remain selectable for backward compatibility.
+
 ## Official References
 
 - OpenAI models: https://developers.openai.com/api/docs/models

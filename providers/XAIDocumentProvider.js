@@ -7,6 +7,7 @@ class XAIDocumentProvider extends BaseDocumentProvider {
     }
 
     async uploadFile(file) {
+        this.assertConfigured();
         const formData = new FormData();
         // xAI requires expires_after to precede the file part.
         formData.append('expires_after', String(this.fileLifetimeSeconds));

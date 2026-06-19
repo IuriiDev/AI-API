@@ -85,7 +85,9 @@ module.exports = {
                 { id: 'gpt-5.5', displayName: 'GPT-5.5', description: 'Flagship reasoning model' },
                 { id: 'gpt-5.4', displayName: 'GPT-5.4', description: 'High-capability general model' },
                 { id: 'gpt-5.4-mini', displayName: 'GPT-5.4 Mini', description: 'Balanced speed and quality' },
-                { id: 'gpt-5.4-nano', displayName: 'GPT-5.4 Nano', description: 'Low-latency workloads' }
+                { id: 'gpt-5.4-nano', displayName: 'GPT-5.4 Nano', description: 'Low-latency workloads' },
+                { id: 'gpt-5', displayName: 'GPT-5', description: 'Legacy flagship model', status: 'legacy' },
+                { id: 'gpt-5-nano', displayName: 'GPT-5 Nano', description: 'Legacy low-latency model', status: 'legacy' }
             ],
             defaultModel: 'gpt-5.4-mini',
             documentInput: {
@@ -116,7 +118,10 @@ module.exports = {
                 { id: 'gemini-3.1-pro-preview', displayName: 'Gemini 3.1 Pro (Preview)', description: 'Advanced reasoning model' },
                 { id: 'gemini-3.1-flash-lite', displayName: 'Gemini 3.1 Flash-Lite', description: 'Stable cost-efficient model' },
                 { id: 'gemini-2.5-pro', displayName: 'Gemini 2.5 Pro', description: 'Previous stable reasoning model' },
-                { id: 'gemini-2.5-flash', displayName: 'Gemini 2.5 Flash', description: 'Previous stable multimodal model' }
+                { id: 'gemini-2.5-flash', displayName: 'Gemini 2.5 Flash', description: 'Previous stable multimodal model' },
+                { id: 'gemini-2.5-flash-lite', displayName: 'Gemini 2.5 Flash-Lite', description: 'Previous cost-efficient model', status: 'legacy' },
+                { id: 'gemini-3-flash-preview', displayName: 'Gemini 3 Flash (Preview)', description: 'Retired preview retained for compatibility metadata', status: 'retired', selectable: false },
+                { id: 'gemini-3.1-flash-lite-preview', displayName: 'Gemini 3.1 Flash-Lite (Preview)', description: 'Retired preview retained for compatibility metadata', status: 'retired', selectable: false }
             ],
             defaultModel: 'gemini-3.5-flash',
             documentInput: {
@@ -149,7 +154,12 @@ module.exports = {
                 { id: 'grok-4.3', displayName: 'Grok 4.3', description: 'Recommended general agentic model' },
                 { id: 'grok-4.20-0309-reasoning', displayName: 'Grok 4.20 0309 Reasoning', description: 'Reasoning snapshot' },
                 { id: 'grok-4.20-0309-non-reasoning', displayName: 'Grok 4.20 0309 Non-Reasoning', description: 'Low-latency snapshot' },
-                { id: 'grok-4.20-multi-agent-0309', displayName: 'Grok 4.20 Multi-Agent 0309', description: 'Multi-agent research snapshot' }
+                { id: 'grok-4.20-multi-agent-0309', displayName: 'Grok 4.20 Multi-Agent 0309', description: 'Multi-agent research snapshot' },
+                { id: 'grok-4-1-fast-reasoning', displayName: 'Grok 4.1 Fast Reasoning', description: 'Retired model retained for compatibility metadata', status: 'retired', selectable: false },
+                { id: 'grok-4-1-fast-non-reasoning', displayName: 'Grok 4.1 Fast Non-Reasoning', description: 'Retired model retained for compatibility metadata', status: 'retired', selectable: false },
+                { id: 'grok-4-1', displayName: 'Grok 4.1', description: 'Retired model retained for compatibility metadata', status: 'retired', selectable: false },
+                { id: 'grok-4-fast-reasoning', displayName: 'Grok 4 Fast Reasoning', description: 'Retired model retained for compatibility metadata', status: 'retired', selectable: false },
+                { id: 'grok-4-fast-non-reasoning', displayName: 'Grok 4 Fast Non-Reasoning', description: 'Retired model retained for compatibility metadata', status: 'retired', selectable: false }
             ],
             defaultModel: 'grok-4.3',
             documentInput: {
@@ -181,7 +191,9 @@ module.exports = {
             },
             availableModels: [
                 { id: 'deepseek-v4-flash', displayName: 'DeepSeek V4 Flash', description: 'Fast 1M-context model' },
-                { id: 'deepseek-v4-pro', displayName: 'DeepSeek V4 Pro', description: 'Higher-capability 1M-context model' }
+                { id: 'deepseek-v4-pro', displayName: 'DeepSeek V4 Pro', description: 'Higher-capability 1M-context model' },
+                { id: 'deepseek-chat', displayName: 'DeepSeek Chat', description: 'Deprecated compatibility alias', status: 'legacy' },
+                { id: 'deepseek-reasoner', displayName: 'DeepSeek Reasoner', description: 'Deprecated compatibility alias', status: 'legacy' }
             ],
             defaultModel: 'deepseek-v4-flash',
             documentInput: {

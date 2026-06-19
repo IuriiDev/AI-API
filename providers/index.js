@@ -115,10 +115,12 @@ function providerSupports(providerName, capability) {
 function getConfiguredModels() {
     return getConfiguredProviders().map(providerId => {
         const providerConfig = config.providers[providerId];
+        const availableModels = providerConfig.availableModels || [];
         return {
             id: providerId,
             name: providerConfig.name,
-            models: providerConfig.availableModels || [],
+            models: availableModels.filter(model => model.selectable !== false),
+            legacyModels: availableModels.filter(model => model.status),
             defaultModel: providerConfig.defaultModel,
             documentInput: providerConfig.documentInput
         };
