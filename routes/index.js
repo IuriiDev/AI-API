@@ -13,10 +13,12 @@ const { handleRespond } = require('../controllers/respondController');
 const { handleGetJob } = require('../controllers/jobController');
 const { handleImageAnalysis } = require('../controllers/imageAnalysisController');
 const { handleImageGeneration } = require('../controllers/imageGenerationController');
+const { handleCVAnalysis } = require('../controllers/cvAnalysisController');
 
 // Middleware
 const { asyncHandler } = require('../middleware/errorHandler');
 const { rateLimiter } = require('../middleware/rateLimiter');
+const { handleCVAnalysisUpload } = require('../middleware/cvAnalysisUpload');
 const {
     validateImageAnalysisRequest,
     validateImageGenerationRequest,
@@ -41,6 +43,7 @@ router.get('/', (req, res) => {
             jobs: 'GET /api/ai/jobs/:job_id',
             imageAnalysis: 'POST /api/analyze-image',
             imageGeneration: 'POST /api/generate-image',
+            cvAnalysis: 'POST /api/cv-analysis',
             providers: 'GET /api/providers',
             models: 'GET /api/models'
         }
@@ -96,6 +99,13 @@ router.post('/ai/respond',
  */
 router.get('/ai/jobs/:job_id',
     asyncHandler(handleGetJob)
+);
+
+// CV analysis accepts one required CV and one optional cover letter.
+router.post('/cv-analysis',
+    rateLimiter,
+    handleCVAnalysisUpload,
+    asyncHandler(handleCVAnalysis)
 );
 
 // ═══════════════════════════════════════════════════════════════════════════

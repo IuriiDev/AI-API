@@ -89,6 +89,7 @@ app.listen(PORT, () => {
     console.log('   💬 Chat:');
     console.log('   POST /api/ai/respond   - Chat (sync/stream/background)');
     console.log('   GET  /api/ai/jobs/:id  - Poll background job');
+    console.log('   POST /api/cv-analysis  - Analyze CV documents');
     console.log('');
     console.log('   🖼️  Images:');
     console.log('   POST /api/analyze-image - Image analysis');

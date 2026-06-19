@@ -5,7 +5,55 @@ All client applications must communicate with the backend only. **Never expose A
 ## API Base URL
 
 ```
-https://ai-api.okonrentner.com/api
+https://ai-api-ckbi.onrender.com/api
+```
+
+## CV Analysis - POST /cv-analysis
+
+The app sends documents to this backend. The backend uploads them to xAI, runs the
+analysis, deletes the temporary xAI files, and returns structured JSON. Configure
+`XAI_API_KEY` on the server; never place it in the iOS app.
+
+```bash
+curl -X POST https://ai-api-ckbi.onrender.com/api/cv-analysis \
+  -F "cv=@/path/to/cv.pdf" \
+  -F "cover_letter=@/path/to/cover-letter.pdf" \
+  -F "additional_information=Target role: Senior Product Designer"
+```
+
+`cv` is required. `cover_letter` and `additional_information` are optional. PDF,
+DOC, and DOCX files are accepted, up to 5 MB per document.
+
+```json
+{
+  "success": true,
+  "analysis": {
+    "overall_score": 82,
+    "headline": "Strong foundation with clear opportunities to improve impact",
+    "summary": "...",
+    "candidate_profile": {
+      "target_role": "Senior Product Designer",
+      "seniority": "Senior",
+      "experience_summary": "..."
+    },
+    "breakdown": [],
+    "strengths": [],
+    "priority_improvements": [],
+    "ats_analysis": {
+      "formatting_assessment": "...",
+      "present_keywords": [],
+      "missing_keywords": []
+    },
+    "role_matches": [],
+    "cover_letter_feedback": {
+      "provided": true,
+      "score": 76,
+      "summary": "...",
+      "improvements": []
+    },
+    "final_recommendation": "..."
+  }
+}
 ```
 
 ---
@@ -17,7 +65,7 @@ The unified chat endpoint supports multiple input formats and modes.
 ### Simple Input (New Apps)
 
 ```bash
-curl -X POST https://ai-api.okonrentner.com/api/ai/respond \
+curl -X POST https://ai-api-ckbi.onrender.com/api/ai/respond \
   -H "Content-Type: application/json" \
   -d '{
     "input": "Explain quantum computing",
@@ -28,7 +76,7 @@ curl -X POST https://ai-api.okonrentner.com/api/ai/respond \
 ### Messages Array (iOS App Compatible)
 
 ```bash
-curl -X POST https://ai-api.okonrentner.com/api/ai/respond \
+curl -X POST https://ai-api-ckbi.onrender.com/api/ai/respond \
   -H "Content-Type: application/json" \
   -d '{
     "messages": [
@@ -43,7 +91,7 @@ curl -X POST https://ai-api.okonrentner.com/api/ai/respond \
 ### With Image (Vision)
 
 ```bash
-curl -X POST https://ai-api.okonrentner.com/api/ai/respond \
+curl -X POST https://ai-api-ckbi.onrender.com/api/ai/respond \
   -H "Content-Type: application/json" \
   -d '{
     "messages": [{"role": "user", "content": "What is in this image?"}],
@@ -71,7 +119,7 @@ curl -X POST https://ai-api.okonrentner.com/api/ai/respond \
 ## Streaming - POST /ai/respond
 
 ```bash
-curl -X POST https://ai-api.okonrentner.com/api/ai/respond \
+curl -X POST https://ai-api-ckbi.onrender.com/api/ai/respond \
   -H "Content-Type: application/json" \
   -d '{"input": "Tell me a story", "stream": true}'
 ```
@@ -88,7 +136,7 @@ data: {"done":true}
 
 ```javascript
 async function streamChat(input, onChunk) {
-  const response = await fetch('https://ai-api.okonrentner.com/api/ai/respond', {
+  const response = await fetch('https://ai-api-ckbi.onrender.com/api/ai/respond', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ input, stream: true })
@@ -120,7 +168,7 @@ async function streamChat(input, onChunk) {
 ### Start Job
 
 ```bash
-curl -X POST https://ai-api.okonrentner.com/api/ai/respond \
+curl -X POST https://ai-api-ckbi.onrender.com/api/ai/respond \
   -H "Content-Type: application/json" \
   -d '{"input": "Write an essay", "background": true}'
 ```
@@ -137,7 +185,7 @@ curl -X POST https://ai-api.okonrentner.com/api/ai/respond \
 ### Poll Job - GET /ai/jobs/:job_id
 
 ```bash
-curl https://ai-api.okonrentner.com/api/ai/jobs/job_abc123def456
+curl https://ai-api-ckbi.onrender.com/api/ai/jobs/job_abc123def456
 ```
 
 **Response:**
@@ -170,7 +218,7 @@ struct AIResponse: Codable {
 }
 
 func sendMessage(messages: [[String: String]], provider: String = "openai", image: String? = nil) async throws -> String {
-    let url = URL(string: "https://ai-api.okonrentner.com/api/ai/respond")!
+    let url = URL(string: "https://ai-api-ckbi.onrender.com/api/ai/respond")!
     var request = URLRequest(url: url)
     request.httpMethod = "POST"
     request.setValue("application/json", forHTTPHeaderField: "Content-Type")

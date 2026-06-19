@@ -22,6 +22,14 @@ module.exports = {
         minInputLength: 1
     },
 
+    // CV analysis request limits
+    cvAnalysis: {
+        maximumFileSizeBytes: 5 * 1024 * 1024,
+        maximumAdditionalInformationLength: 4000,
+        uploadedFileLifetimeSeconds: 3600,
+        requestTimeoutMs: parseInt(process.env.CV_ANALYSIS_TIMEOUT_MS) || 120000
+    },
+
     // Timeout Settings
     timeouts: {
         requestMs: parseInt(process.env.REQUEST_TIMEOUT_MS) || 30000, // 30 seconds
@@ -99,13 +107,16 @@ module.exports = {
         grok: {
             name: 'Grok',
             baseUrl: 'https://api.x.ai/v1',
-            apiKey: process.env.GROK_API_KEY,
+            apiKey: process.env.XAI_API_KEY || process.env.GROK_API_KEY,
             endpoints: {
-                chat: '/chat/completions'
+                chat: '/chat/completions',
+                files: '/files',
+                responses: '/responses'
             },
             models: {
                 chat: 'grok-4-1-fast-non-reasoning',
-                vision: 'grok-4-1-fast-non-reasoning'
+                vision: 'grok-4-1-fast-non-reasoning',
+                documentAnalysis: process.env.XAI_CV_ANALYSIS_MODEL || 'grok-4.3'
             },
             availableModels: [
                 { id: 'grok-4.20-0309-reasoning', displayName: 'Grok 4.20 0309 (Reasoning)', description: 'Reasoning variant' },
