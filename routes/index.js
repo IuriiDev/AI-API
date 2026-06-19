@@ -13,12 +13,15 @@ const { handleRespond } = require('../controllers/respondController');
 const { handleGetJob } = require('../controllers/jobController');
 const { handleImageAnalysis } = require('../controllers/imageAnalysisController');
 const { handleImageGeneration } = require('../controllers/imageGenerationController');
-const { handleCVAnalysis } = require('../controllers/cvAnalysisController');
+const { handleDocumentAnalysis } = require('../controllers/documentAnalysisController');
 
 // Middleware
 const { asyncHandler } = require('../middleware/errorHandler');
 const { rateLimiter } = require('../middleware/rateLimiter');
-const { handleCVAnalysisUpload } = require('../middleware/cvAnalysisUpload');
+const { handleDocumentAnalysisUpload } = require('../middleware/documentAnalysisUpload');
+const {
+    validateDocumentAnalysisRequest
+} = require('../middleware/validateDocumentAnalysisRequest');
 const {
     validateImageAnalysisRequest,
     validateImageGenerationRequest,
@@ -26,7 +29,12 @@ const {
 } = require('../middleware/validateRequest');
 
 // Provider info
-const { getAvailableProviders, getConfiguredProviders, getConfiguredModels } = require('../providers');
+const {
+    getAvailableProviders,
+    getConfiguredProviders,
+    getConfiguredModels,
+    getProviderCatalog
+} = require('../providers');
 
 /**
  * Health Check & Info
@@ -34,8 +42,8 @@ const { getAvailableProviders, getConfiguredProviders, getConfiguredModels } = r
 router.get('/', (req, res) => {
     res.json({
         success: true,
-        message: '🚀 AI API Gateway is running',
-        version: '3.0.0',
+        message: 'AI API Gateway is running',
+        version: '3.1.0',
         availableProviders: getAvailableProviders(),
         configuredProviders: getConfiguredProviders(),
         endpoints: {
@@ -43,7 +51,7 @@ router.get('/', (req, res) => {
             jobs: 'GET /api/ai/jobs/:job_id',
             imageAnalysis: 'POST /api/analyze-image',
             imageGeneration: 'POST /api/generate-image',
-            cvAnalysis: 'POST /api/cv-analysis',
+            documentAnalysis: 'POST /api/document-analysis',
             providers: 'GET /api/providers',
             models: 'GET /api/models'
         }
@@ -57,7 +65,8 @@ router.get('/providers', (req, res) => {
     res.json({
         success: true,
         available: getAvailableProviders(),
-        configured: getConfiguredProviders()
+        configured: getConfiguredProviders(),
+        providers: getProviderCatalog()
     });
 });
 
@@ -101,11 +110,11 @@ router.get('/ai/jobs/:job_id',
     asyncHandler(handleGetJob)
 );
 
-// CV analysis accepts one required CV and one optional cover letter.
-router.post('/cv-analysis',
+router.post('/document-analysis',
     rateLimiter,
-    handleCVAnalysisUpload,
-    asyncHandler(handleCVAnalysis)
+    handleDocumentAnalysisUpload,
+    validateDocumentAnalysisRequest,
+    asyncHandler(handleDocumentAnalysis)
 );
 
 // ═══════════════════════════════════════════════════════════════════════════

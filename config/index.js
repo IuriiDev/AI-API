@@ -1,80 +1,100 @@
-/**
- * Centralized Configuration
- * Single source of truth for all settings
- */
+function positiveInteger(value, fallback) {
+    const parsedValue = Number.parseInt(value, 10);
+    return Number.isInteger(parsedValue) && parsedValue > 0
+        ? parsedValue
+        : fallback;
+}
+
+const commonDocumentFormats = [
+    'pdf', 'txt', 'md', 'json', 'html', 'xml', 'csv', 'tsv',
+    'rtf', 'doc', 'docx', 'odt', 'ppt', 'pptx', 'xls', 'xlsx'
+];
 
 module.exports = {
-    // Server
     server: {
-        port: process.env.PORT || 3000,
-        bodyLimit: '25mb'
+        port: positiveInteger(process.env.PORT, 3000),
+        bodyLimit: process.env.BODY_LIMIT || '25mb',
+        trustProxy: positiveInteger(process.env.TRUST_PROXY_HOPS, 1)
     },
 
-    // Rate Limiting
     rateLimiting: {
-        maxRequests: parseInt(process.env.RATE_LIMIT_MAX) || 100,
-        windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000 // 15 minutes
+        maxRequests: positiveInteger(process.env.RATE_LIMIT_MAX, 100),
+        windowMs: positiveInteger(process.env.RATE_LIMIT_WINDOW_MS, 15 * 60 * 1000)
     },
 
-    // Request Validation
     validation: {
-        maxInputLength: parseInt(process.env.MAX_INPUT_LENGTH) || 32000, // ~8k tokens
+        maxInputLength: positiveInteger(process.env.MAX_INPUT_LENGTH, 32000),
         minInputLength: 1
     },
 
-    // CV analysis request limits
-    cvAnalysis: {
-        maximumFileSizeBytes: 5 * 1024 * 1024,
-        maximumAdditionalInformationLength: 4000,
-        uploadedFileLifetimeSeconds: 3600,
-        requestTimeoutMs: parseInt(process.env.CV_ANALYSIS_TIMEOUT_MS) || 120000
+    documentAnalysis: {
+        defaultProvider: (process.env.DOCUMENT_ANALYSIS_PROVIDER || 'grok').toLowerCase(),
+        maximumFileSizeBytes: positiveInteger(
+            process.env.DOCUMENT_MAX_FILE_SIZE_BYTES,
+            10 * 1024 * 1024
+        ),
+        maximumDocumentCount: positiveInteger(process.env.DOCUMENT_MAX_FILE_COUNT, 5),
+        maximumTotalFileSizeBytes: positiveInteger(
+            process.env.DOCUMENT_MAX_TOTAL_FILE_SIZE_BYTES,
+            45 * 1024 * 1024
+        ),
+        maximumPromptLength: positiveInteger(process.env.DOCUMENT_MAX_PROMPT_LENGTH, 32000),
+        maximumSchemaLength: positiveInteger(process.env.DOCUMENT_MAX_SCHEMA_LENGTH, 64000),
+        uploadedFileLifetimeSeconds: positiveInteger(
+            process.env.DOCUMENT_FILE_LIFETIME_SECONDS,
+            3600
+        ),
+        requestTimeoutMs: positiveInteger(process.env.DOCUMENT_ANALYSIS_TIMEOUT_MS, 120000)
     },
 
-    // Timeout Settings
     timeouts: {
-        requestMs: parseInt(process.env.REQUEST_TIMEOUT_MS) || 30000, // 30 seconds
-        retryAttempts: 3,
-        retryDelayMs: 1000 // Initial delay, exponential backoff applied
+        requestMs: positiveInteger(process.env.REQUEST_TIMEOUT_MS, 30000),
+        retryAttempts: positiveInteger(process.env.RETRY_ATTEMPTS, 3),
+        retryDelayMs: positiveInteger(process.env.RETRY_DELAY_MS, 1000)
     },
 
-    // CORS Settings
     cors: {
         origins: process.env.CORS_ORIGINS
-            ? process.env.CORS_ORIGINS.split(',')
+            ? process.env.CORS_ORIGINS.split(',').map(origin => origin.trim()).filter(Boolean)
             : ['http://localhost:3000', 'http://localhost:8080'],
         credentials: true
     },
 
-    // Logging
     logging: {
-        logUserContent: process.env.LOG_USER_CONTENT === 'true' // Default: false
+        logUserContent: process.env.LOG_USER_CONTENT === 'true'
     },
 
-    // AI Providers Configuration
     providers: {
         openai: {
-            name: 'ChatGPT',
+            name: 'OpenAI',
             baseUrl: 'https://api.openai.com/v1',
             apiKey: process.env.OPENAI_API_KEY,
             endpoints: {
                 chat: '/chat/completions',
+                files: '/files',
+                responses: '/responses',
                 imageGeneration: '/images/generations'
             },
-            // Models used for API requests
             models: {
-                chat: 'gpt-5.4-nano',
-                vision: 'gpt-5.4-nano',
-                imageGeneration: 'gpt-image-1'
+                chat: 'gpt-5.4-mini',
+                vision: 'gpt-5.4-mini',
+                documentAnalysis: process.env.OPENAI_DOCUMENT_MODEL || 'gpt-5.5',
+                imageGeneration: 'gpt-image-2'
             },
-            // Models shown in UI dropdown
             availableModels: [
-                { id: 'gpt-5.4', displayName: 'ChatGPT 5.4', description: 'Most capable' },
-                { id: 'gpt-5.4-mini', displayName: 'ChatGPT 5.4 Mini', description: 'Balanced' },
-                { id: 'gpt-5.4-nano', displayName: 'ChatGPT 5.4 Nano', description: 'Fast & efficient' },
-                { id: 'gpt-5', displayName: 'ChatGPT 5', description: 'Flagship' },
-                { id: 'gpt-5-nano', displayName: 'ChatGPT 5 Nano', description: 'Fast & efficient' }
+                { id: 'gpt-5.5', displayName: 'GPT-5.5', description: 'Flagship reasoning model' },
+                { id: 'gpt-5.4', displayName: 'GPT-5.4', description: 'High-capability general model' },
+                { id: 'gpt-5.4-mini', displayName: 'GPT-5.4 Mini', description: 'Balanced speed and quality' },
+                { id: 'gpt-5.4-nano', displayName: 'GPT-5.4 Nano', description: 'Low-latency workloads' }
             ],
-            defaultModel: 'gpt-5.4-nano',
+            defaultModel: 'gpt-5.4-mini',
+            documentInput: {
+                supportedByProvider: true,
+                gatewayEnabled: true,
+                models: ['gpt-5.5', 'gpt-5.4', 'gpt-5.4-mini', 'gpt-5.4-nano'],
+                formats: commonDocumentFormats,
+                notes: 'PDF content includes extracted text and page images; other documents are text-extracted.'
+            },
             defaults: {
                 maxCompletionTokens: 4096
             }
@@ -88,24 +108,31 @@ module.exports = {
                 chat: '/models/{model}:generateContent'
             },
             models: {
-                chat: 'gemini-2.5-flash',
-                vision: 'gemini-2.5-flash'
+                chat: 'gemini-3.5-flash',
+                vision: 'gemini-3.5-flash'
             },
             availableModels: [
-                { id: 'gemini-3.1-pro-preview', displayName: 'Gemini 3.1 Pro (Preview)', description: 'Most capable multimodal' },
-                { id: 'gemini-3-flash-preview', displayName: 'Gemini 3 Flash (Preview)', description: 'Fast multimodal' },
-                { id: 'gemini-3.1-flash-lite-preview', displayName: 'Gemini 3.1 Flash Lite (Preview)', description: 'Lightweight, cost-efficient' },
-                { id: 'gemini-2.5-flash', displayName: 'Gemini 2.5 Flash', description: 'Fast multimodal reasoning' },
-                { id: 'gemini-2.5-flash-lite', displayName: 'Gemini 2.5 Flash Lite', description: 'Lightweight, cost-efficient' }
+                { id: 'gemini-3.5-flash', displayName: 'Gemini 3.5 Flash', description: 'Stable multimodal model' },
+                { id: 'gemini-3.1-pro-preview', displayName: 'Gemini 3.1 Pro (Preview)', description: 'Advanced reasoning model' },
+                { id: 'gemini-3.1-flash-lite', displayName: 'Gemini 3.1 Flash-Lite', description: 'Stable cost-efficient model' },
+                { id: 'gemini-2.5-pro', displayName: 'Gemini 2.5 Pro', description: 'Previous stable reasoning model' },
+                { id: 'gemini-2.5-flash', displayName: 'Gemini 2.5 Flash', description: 'Previous stable multimodal model' }
             ],
-            defaultModel: 'gemini-2.5-flash',
+            defaultModel: 'gemini-3.5-flash',
+            documentInput: {
+                supportedByProvider: true,
+                gatewayEnabled: false,
+                models: ['gemini-3.5-flash', 'gemini-3.1-pro-preview', 'gemini-3.1-flash-lite'],
+                formats: commonDocumentFormats,
+                notes: 'PDF is processed natively; non-PDF documents are primarily text-extracted.'
+            },
             defaults: {
                 maxOutputTokens: 8192
             }
         },
 
         grok: {
-            name: 'Grok',
+            name: 'xAI',
             baseUrl: 'https://api.x.ai/v1',
             apiKey: process.env.XAI_API_KEY || process.env.GROK_API_KEY,
             endpoints: {
@@ -114,20 +141,29 @@ module.exports = {
                 responses: '/responses'
             },
             models: {
-                chat: 'grok-4-1-fast-non-reasoning',
-                vision: 'grok-4-1-fast-non-reasoning',
-                documentAnalysis: process.env.XAI_CV_ANALYSIS_MODEL || 'grok-4.3'
+                chat: 'grok-4.3',
+                vision: 'grok-4.3',
+                documentAnalysis: process.env.XAI_DOCUMENT_MODEL || 'grok-4.3'
             },
             availableModels: [
-                { id: 'grok-4.20-0309-reasoning', displayName: 'Grok 4.20 0309 (Reasoning)', description: 'Reasoning variant' },
-                { id: 'grok-4.20-0309-non-reasoning', displayName: 'Grok 4.20 0309 (Non-Reasoning)', description: 'Non-reasoning variant' },
-                { id: 'grok-4-1-fast-reasoning', displayName: 'Grok 4.1 Fast (Reasoning)', description: '2M context window' },
-                { id: 'grok-4-1-fast-non-reasoning', displayName: 'Grok 4.1 Fast (Non-Reasoning)', description: '2M context window' },
-                { id: 'grok-4-1', displayName: 'Grok 4.1', description: '2M context window' },
-                { id: 'grok-4-fast-reasoning', displayName: 'Grok 4 Fast (Reasoning)', description: '512k context window' },
-                { id: 'grok-4-fast-non-reasoning', displayName: 'Grok 4 Fast (Non-Reasoning)', description: '512k context window' }
+                { id: 'grok-4.3', displayName: 'Grok 4.3', description: 'Recommended general agentic model' },
+                { id: 'grok-4.20-0309-reasoning', displayName: 'Grok 4.20 0309 Reasoning', description: 'Reasoning snapshot' },
+                { id: 'grok-4.20-0309-non-reasoning', displayName: 'Grok 4.20 0309 Non-Reasoning', description: 'Low-latency snapshot' },
+                { id: 'grok-4.20-multi-agent-0309', displayName: 'Grok 4.20 Multi-Agent 0309', description: 'Multi-agent research snapshot' }
             ],
-            defaultModel: 'grok-4-1-fast-non-reasoning',
+            defaultModel: 'grok-4.3',
+            documentInput: {
+                supportedByProvider: true,
+                gatewayEnabled: true,
+                models: [
+                    'grok-4.3',
+                    'grok-4.20-0309-reasoning',
+                    'grok-4.20-0309-non-reasoning',
+                    'grok-4.20-multi-agent-0309'
+                ],
+                formats: commonDocumentFormats,
+                notes: 'Supports PDF and common text-based document formats through the Files API.'
+            },
             defaults: {
                 maxTokens: 4096
             }
@@ -141,27 +177,34 @@ module.exports = {
                 chat: '/chat/completions'
             },
             models: {
-                chat: 'deepseek-chat'
+                chat: 'deepseek-v4-flash'
             },
             availableModels: [
-                { id: 'deepseek-chat', displayName: 'DeepSeek Chat', description: 'General-purpose conversational model' },
-                { id: 'deepseek-reasoner', displayName: 'DeepSeek Reasoner', description: 'Enhanced reasoning capabilities' }
+                { id: 'deepseek-v4-flash', displayName: 'DeepSeek V4 Flash', description: 'Fast 1M-context model' },
+                { id: 'deepseek-v4-pro', displayName: 'DeepSeek V4 Pro', description: 'Higher-capability 1M-context model' }
             ],
-            defaultModel: 'deepseek-chat',
+            defaultModel: 'deepseek-v4-flash',
+            documentInput: {
+                supportedByProvider: false,
+                gatewayEnabled: false,
+                models: [],
+                formats: [],
+                notes: 'No public direct document-input API is currently documented.'
+            },
             defaults: {
                 maxTokens: 8192
             }
         }
     },
 
-    // Image Generation Settings
     imageSettings: {
         sizes: ['1024x1024', '1536x1024', '1024x1536'],
-        qualities: ['standard', 'hd'],
+        qualities: ['low', 'medium', 'high'],
         formats: ['png', 'jpeg', 'webp'],
+        maximumCount: 4,
         defaults: {
             size: '1024x1024',
-            quality: 'standard',
+            quality: 'medium',
             format: 'png',
             count: 1
         }

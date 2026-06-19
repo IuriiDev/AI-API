@@ -119,7 +119,26 @@ function getConfiguredModels() {
             id: providerId,
             name: providerConfig.name,
             models: providerConfig.availableModels || [],
-            defaultModel: providerConfig.defaultModel
+            defaultModel: providerConfig.defaultModel,
+            documentInput: providerConfig.documentInput
+        };
+    });
+}
+
+/**
+ * Get public capability metadata without exposing provider credentials.
+ * @returns {Array<Object>}
+ */
+function getProviderCatalog() {
+    return getAvailableProviders().map(providerId => {
+        const providerConfig = config.providers[providerId];
+        return {
+            id: providerId,
+            name: providerConfig.name,
+            configured: Boolean(providerConfig.apiKey),
+            defaultModel: providerConfig.defaultModel,
+            models: providerConfig.availableModels || [],
+            documentInput: providerConfig.documentInput
         };
     });
 }
@@ -129,5 +148,6 @@ module.exports = {
     getAvailableProviders,
     getConfiguredProviders,
     getConfiguredModels,
+    getProviderCatalog,
     providerSupports
 };

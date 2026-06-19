@@ -5,9 +5,9 @@
  * Auth: API key in URL parameter (not header)
  *
  * Models:
- * - gemini-3.1-pro-preview (multimodal, preview)
- * - gemini-3-flash-preview (multimodal, preview)
- * - gemini-3.1-flash-lite-preview (multimodal, preview)
+ * - gemini-3.5-flash (stable multimodal)
+ * - gemini-3.1-pro-preview (advanced reasoning preview)
+ * - gemini-3.1-flash-lite (stable cost-efficient model)
  * - gemini-2.5-flash (multimodal, 1M context)
  * - gemini-2.5-flash-lite (multimodal)
  *
@@ -23,7 +23,7 @@ const BaseProvider = require('./BaseProvider');
 class GeminiProvider extends BaseProvider {
 
     getCapabilities() {
-        return ['chat', 'vision', 'streaming'];
+        return ['chat', 'vision', 'documentInput', 'streaming'];
     }
 
     /**

@@ -7,7 +7,7 @@
  * - Chat completions (GPT-5.4, GPT-5.4-mini, GPT-5.4-nano, GPT-5, GPT-5-nano)
  * - Streaming responses (SSE)
  * - Image analysis/vision
- * - Image generation (gpt-image-1)
+ * - Image generation (GPT Image 2)
  * - Retry logic with exponential backoff (inherited from BaseProvider)
  */
 
@@ -17,7 +17,7 @@ const BaseProvider = require('./BaseProvider');
 class OpenAIProvider extends BaseProvider {
 
     getCapabilities() {
-        return ['chat', 'vision', 'imageGeneration', 'streaming'];
+        return ['chat', 'vision', 'documentInput', 'imageGeneration', 'streaming'];
     }
 
     /**
@@ -148,11 +148,11 @@ class OpenAIProvider extends BaseProvider {
     }
 
     /**
-     * Image generation using gpt-image-1
+     * Image generation using GPT Image 2
      * @param {Object} params - { prompt, size, quality, count }
      * @returns {Promise<Object>}
      */
-    async generateImage({ prompt, size, quality, count }) {
+    async generateImage({ prompt, size, quality, outputFormat, count }) {
         const url = this.buildUrl(this.endpoints.imageGeneration);
 
         const payload = {
@@ -160,8 +160,8 @@ class OpenAIProvider extends BaseProvider {
             prompt: prompt.trim(),
             n: count || 1,
             size: size || '1024x1024',
-            quality: quality || 'standard',
-            response_format: 'b64_json'
+            quality: quality || 'medium',
+            output_format: outputFormat || 'png'
         };
 
         const response = await this.requestWithRetry(url, payload);

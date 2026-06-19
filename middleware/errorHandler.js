@@ -19,7 +19,9 @@ const ErrorCodes = {
     INVALID_MODEL: 'INVALID_MODEL',
     INVALID_FILE: 'INVALID_FILE',
     FILE_TOO_LARGE: 'FILE_TOO_LARGE',
-    CV_REQUIRED: 'CV_REQUIRED',
+    DOCUMENT_REQUIRED: 'DOCUMENT_REQUIRED',
+    INVALID_SCHEMA: 'INVALID_SCHEMA',
+    UNSUPPORTED_CAPABILITY: 'UNSUPPORTED_CAPABILITY',
 
     // Auth errors (401, 403)
     UNAUTHORIZED: 'UNAUTHORIZED',
@@ -36,6 +38,7 @@ const ErrorCodes = {
     // Server errors (500)
     INTERNAL_ERROR: 'INTERNAL_ERROR',
     PROVIDER_ERROR: 'PROVIDER_ERROR',
+    PROVIDER_NOT_CONFIGURED: 'PROVIDER_NOT_CONFIGURED',
     INVALID_PROVIDER_RESPONSE: 'INVALID_PROVIDER_RESPONSE',
     TIMEOUT: 'TIMEOUT'
 };
@@ -75,20 +78,24 @@ function asyncHandler(fn) {
  */
 function errorHandler(error, req, res, next) {
     const timestamp = new Date().toISOString();
-    console.error(`[${timestamp}] Error:`, error.message);
+    const requestId = req.requestId ? ` ${req.requestId}` : '';
+    console.error(`[${timestamp}]${requestId} Error: ${error.message}`);
 
     // Handle Axios errors (from AI provider APIs)
     if (error.response) {
         const providerError = error.response.data?.error || error.response.data;
         const status = error.response.status || 500;
 
-        return res.status(status).json({
+        const response = {
             success: false,
             error: 'AI Provider Error',
             code: status === 429 ? ErrorCodes.RATE_LIMITED : ErrorCodes.PROVIDER_ERROR,
-            message: providerError?.message || 'Request to AI provider failed',
-            details: providerError
-        });
+            message: providerError?.message || 'Request to AI provider failed'
+        };
+        if (process.env.NODE_ENV !== 'production') {
+            response.details = providerError;
+        }
+        return res.status(status).json(response);
     }
 
     // Handle network/timeout errors
@@ -103,12 +110,15 @@ function errorHandler(error, req, res, next) {
 
     // Handle custom API errors
     if (error instanceof APIError) {
-        return res.status(error.statusCode).json({
+        const response = {
             success: false,
             error: error.message,
-            code: error.code,
-            details: error.details
-        });
+            code: error.code
+        };
+        if (error.details && process.env.NODE_ENV !== 'production') {
+            response.details = error.details;
+        }
+        return res.status(error.statusCode).json(response);
     }
 
     // Handle validation errors

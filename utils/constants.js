@@ -9,16 +9,16 @@ const ENDPOINTS = {
 // Models
 const MODELS = {
     // Vision + Chat
-    GPT_5_NANO: 'gpt-5-nano',           // 400K context, 128K output
+    GPT_5_4_MINI: 'gpt-5.4-mini',
     
     // Image Generation
-    GPT_IMAGE_1: 'gpt-image-1'          // Latest image generation model
+    GPT_IMAGE_2: 'gpt-image-2'
 };
 
 // Token Limits (use max_completion_tokens for latest API)
 const TOKEN_LIMITS = {
-    GPT_5_NANO_CONTEXT: 400000,
-    GPT_5_NANO_MAX_COMPLETION: 128000,
+    GPT_5_4_MINI_CONTEXT: 400000,
+    GPT_5_4_MINI_MAX_COMPLETION: 128000,
     DEFAULT_MAX_OUTPUT: 4096
 };
 
@@ -42,7 +42,7 @@ const IMAGE_SETTINGS = {
     },
     DEFAULTS: {
         SIZE: '1024x1024',
-        QUALITY: 'auto',
+        QUALITY: 'medium',
         FORMAT: 'png',
         COUNT: 1
     }

@@ -105,6 +105,7 @@ class BaseProvider {
         try {
             const response = await axios.post(url, payload, {
                 headers: this.getHeaders(),
+                timeout: this.timeouts.requestMs,
                 ...options
             });
             return response;
@@ -113,7 +114,13 @@ class BaseProvider {
             const canRetry = attempt < this.timeouts.retryAttempts;
 
             if (isRetryable && canRetry) {
-                const delay = this.timeouts.retryDelayMs * Math.pow(2, attempt - 1);
+                const retryAfterSeconds = Number.parseInt(
+                    error.response?.headers?.['retry-after'],
+                    10
+                );
+                const delay = Number.isInteger(retryAfterSeconds)
+                    ? retryAfterSeconds * 1000
+                    : this.timeouts.retryDelayMs * Math.pow(2, attempt - 1);
                 console.log(`[${this.name}] Retry attempt ${attempt + 1} after ${delay}ms`);
                 await this.sleep(delay);
                 return this.requestWithRetry(url, payload, options, attempt + 1);

@@ -8,50 +8,34 @@ All client applications must communicate with the backend only. **Never expose A
 https://ai-api-ckbi.onrender.com/api
 ```
 
-## CV Analysis - POST /cv-analysis
+## Document Analysis - POST /document-analysis
 
-The app sends documents to this backend. The backend uploads them to xAI, runs the
-analysis, deletes the temporary xAI files, and returns structured JSON. Configure
-`XAI_API_KEY` on the server; never place it in the iOS app.
+The client owns the task prompt and optional JSON Schema. The gateway stays
+domain-neutral, uploads the supplied documents to the selected provider, returns
+the provider result, and deletes temporary provider files.
 
 ```bash
-curl -X POST https://ai-api-ckbi.onrender.com/api/cv-analysis \
-  -F "cv=@/path/to/cv.pdf" \
-  -F "cover_letter=@/path/to/cover-letter.pdf" \
-  -F "additional_information=Target role: Senior Product Designer"
+curl -X POST https://ai-api-ckbi.onrender.com/api/document-analysis \
+  -F "documents=@/path/to/primary.pdf" \
+  -F "documents=@/path/to/supporting.docx" \
+  -F "provider=grok" \
+  -F "model=grok-4.3" \
+  -F "prompt=Analyze these documents and summarize their key findings." \
+  -F 'schema_name=document_summary' \
+  -F 'response_schema={"type":"object","additionalProperties":false,"properties":{"summary":{"type":"string"}},"required":["summary"]}'
 ```
 
-`cv` is required. `cover_letter` and `additional_information` are optional. PDF,
-DOC, and DOCX files are accepted, up to 5 MB per document.
+At least one `documents` part and a `prompt` are required. `provider`, `model`,
+`schema_name`, and `response_schema` are optional. The configured gateway limit is
+10 MB per document and five documents per request by default.
 
 ```json
 {
   "success": true,
-  "analysis": {
-    "overall_score": 82,
-    "headline": "Strong foundation with clear opportunities to improve impact",
-    "summary": "...",
-    "candidate_profile": {
-      "target_role": "Senior Product Designer",
-      "seniority": "Senior",
-      "experience_summary": "..."
-    },
-    "breakdown": [],
-    "strengths": [],
-    "priority_improvements": [],
-    "ats_analysis": {
-      "formatting_assessment": "...",
-      "present_keywords": [],
-      "missing_keywords": []
-    },
-    "role_matches": [],
-    "cover_letter_feedback": {
-      "provided": true,
-      "score": 76,
-      "summary": "...",
-      "improvements": []
-    },
-    "final_recommendation": "..."
+  "provider": "grok",
+  "model": "grok-4.3",
+  "result": {
+    "summary": "..."
   }
 }
 ```
@@ -69,7 +53,7 @@ curl -X POST https://ai-api-ckbi.onrender.com/api/ai/respond \
   -H "Content-Type: application/json" \
   -d '{
     "input": "Explain quantum computing",
-    "model": "gpt-5-nano"
+    "model": "gpt-5.4-mini"
   }'
 ```
 
@@ -108,7 +92,7 @@ curl -X POST https://ai-api-ckbi.onrender.com/api/ai/respond \
   "text": "AI response here...",
   "content": "AI response here...",
   "id": "chatcmpl-...",
-  "model": "gpt-5-nano",
+  "model": "gpt-5.4-mini",
   "provider": "ChatGPT",
   "usage": { "prompt_tokens": 10, "completion_tokens": 150 }
 }

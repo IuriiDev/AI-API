@@ -1,11 +1,12 @@
 {
   "name": "ai-api-gateway",
-  "version": "2.0.0",
-  "description": "Multi-provider AI API Gateway - OpenAI, Gemini, Grok, DeepSeek",
+  "version": "3.1.0",
+  "description": "Provider-neutral AI gateway for chat, images, and document analysis",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "NODE_ENV=development node server.js"
+    "dev": "NODE_ENV=development node server.js",
+    "check": "node --check server.js && node --check routes/index.js && node --check providers/BaseDocumentProvider.js"
   },
   "dependencies": {
     "axios": "^1.6.0",

@@ -13,7 +13,7 @@ const requestCounts = new Map();
 /**
  * Clean up expired entries periodically
  */
-setInterval(() => {
+const cleanupTimer = setInterval(() => {
     const now = Date.now();
     for (const [key, data] of requestCounts.entries()) {
         if (now > data.resetTime) {
@@ -21,6 +21,7 @@ setInterval(() => {
         }
     }
 }, 60000); // Clean every minute
+cleanupTimer.unref();
 
 /**
  * Get client identifier (IP address)
