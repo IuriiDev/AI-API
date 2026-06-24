@@ -56,13 +56,10 @@ function validateDocumentAnalysisRequest(request, _response, next) {
 
         request.documentAnalysisRequest = {
             documents,
-<<<<<<< HEAD
             documentMetadata: parseDocumentMetadata(
                 request.body?.document_metadata,
                 documents.length
             ),
-=======
->>>>>>> 10c6d1393560111d9127ea10b639cf2e6071d8c9
             prompt,
             provider,
             model: optionalText(request.body?.model),
@@ -134,7 +131,6 @@ function parseResponseSchema(value) {
     return schema;
 }
 
-<<<<<<< HEAD
 function parseDocumentMetadata(value, documentCount) {
     const metadataJSON = optionalText(value);
     if (!metadataJSON) {
@@ -191,6 +187,4 @@ function parseDocumentMetadata(value, documentCount) {
     }).sort((left, right) => left.index - right.index);
 }
 
-=======
->>>>>>> 10c6d1393560111d9127ea10b639cf2e6071d8c9
 module.exports = { validateDocumentAnalysisRequest };

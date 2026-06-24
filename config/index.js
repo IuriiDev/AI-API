@@ -28,10 +28,7 @@ module.exports = {
     },
 
     documentAnalysis: {
-<<<<<<< HEAD
         appAuthToken: process.env.DOCUMENT_ANALYSIS_APP_TOKEN || '',
-=======
->>>>>>> 10c6d1393560111d9127ea10b639cf2e6071d8c9
         defaultProvider: (process.env.DOCUMENT_ANALYSIS_PROVIDER || 'grok').toLowerCase(),
         maximumFileSizeBytes: positiveInteger(
             process.env.DOCUMENT_MAX_FILE_SIZE_BYTES,

@@ -16,15 +16,10 @@ the provider result, and deletes temporary provider files.
 
 ```bash
 curl -X POST https://ai-api-ckbi.onrender.com/api/document-analysis \
-<<<<<<< HEAD
   -H "Authorization: Bearer <DOCUMENT_ANALYSIS_APP_TOKEN>" \
   -F "documents=@/path/to/primary.pdf" \
   -F "documents=@/path/to/supporting.docx" \
   -F 'document_metadata=[{"index":0,"role":"primary","file_name":"primary.pdf"},{"index":1,"role":"supporting","file_name":"supporting.docx"}]' \
-=======
-  -F "documents=@/path/to/primary.pdf" \
-  -F "documents=@/path/to/supporting.docx" \
->>>>>>> 10c6d1393560111d9127ea10b639cf2e6071d8c9
   -F "provider=grok" \
   -F "model=grok-4.3" \
   -F "prompt=Analyze these documents and summarize their key findings." \
@@ -32,18 +27,12 @@ curl -X POST https://ai-api-ckbi.onrender.com/api/document-analysis \
   -F 'response_schema={"type":"object","additionalProperties":false,"properties":{"summary":{"type":"string"}},"required":["summary"]}'
 ```
 
-<<<<<<< HEAD
 At least one `documents` part and a `prompt` are required. `document_metadata`
 is optional but recommended when document order or document roles matter.
 `provider`, `model`, `schema_name`, and `response_schema` are optional. The
 configured gateway limit is 10 MB per document and five documents per request
 by default. `Authorization` is required when `DOCUMENT_ANALYSIS_APP_TOKEN` is
 configured on the gateway.
-=======
-At least one `documents` part and a `prompt` are required. `provider`, `model`,
-`schema_name`, and `response_schema` are optional. The configured gateway limit is
-10 MB per document and five documents per request by default.
->>>>>>> 10c6d1393560111d9127ea10b639cf2e6071d8c9
 
 ```json
 {

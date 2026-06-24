@@ -13,11 +13,7 @@ const upload = multer({
     limits: {
         fileSize: config.documentAnalysis.maximumFileSizeBytes,
         files: config.documentAnalysis.maximumDocumentCount,
-<<<<<<< HEAD
         fields: 8
-=======
-        fields: 5
->>>>>>> 10c6d1393560111d9127ea10b639cf2e6071d8c9
     },
     fileFilter: (_request, file, callback) => {
         const extension = path.extname(file.originalname).toLowerCase();

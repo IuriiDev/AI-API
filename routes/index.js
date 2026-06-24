@@ -18,10 +18,7 @@ const { handleDocumentAnalysis } = require('../controllers/documentAnalysisContr
 // Middleware
 const { asyncHandler } = require('../middleware/errorHandler');
 const { rateLimiter } = require('../middleware/rateLimiter');
-<<<<<<< HEAD
 const { requireDocumentAnalysisAuth } = require('../middleware/documentAnalysisAuth');
-=======
->>>>>>> 10c6d1393560111d9127ea10b639cf2e6071d8c9
 const { handleDocumentAnalysisUpload } = require('../middleware/documentAnalysisUpload');
 const {
     validateDocumentAnalysisRequest
@@ -116,10 +113,7 @@ router.get('/ai/jobs/:job_id',
 
 router.post('/document-analysis',
     rateLimiter,
-<<<<<<< HEAD
     requireDocumentAnalysisAuth,
-=======
->>>>>>> 10c6d1393560111d9127ea10b639cf2e6071d8c9
     handleDocumentAnalysisUpload,
     validateDocumentAnalysisRequest,
     asyncHandler(handleDocumentAnalysis)
