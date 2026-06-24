@@ -19,7 +19,11 @@ class BaseDocumentProvider {
         this.fileLifetimeSeconds = documentConfig.uploadedFileLifetimeSeconds;
     }
 
+<<<<<<< HEAD
+    async analyze({ documents, documentMetadata = [], prompt, responseSchema, schemaName, model }) {
+=======
     async analyze({ documents, prompt, responseSchema, schemaName, model }) {
+>>>>>>> 10c6d1393560111d9127ea10b639cf2e6071d8c9
         this.assertConfigured();
         const selectedModel = model || this.defaultModel;
         this.assertSupportedModel(selectedModel);
@@ -39,7 +43,16 @@ class BaseDocumentProvider {
 
             const response = await this.requestAnalysis({
                 fileIds: uploadedFileIds,
+<<<<<<< HEAD
+                prompt: this.promptWithDocumentMetadata({
+                    prompt,
+                    documents,
+                    documentMetadata,
+                    fileIds: uploadedFileIds
+                }),
+=======
                 prompt,
+>>>>>>> 10c6d1393560111d9127ea10b639cf2e6071d8c9
                 responseSchema,
                 schemaName,
                 model: selectedModel
@@ -59,6 +72,34 @@ class BaseDocumentProvider {
         throw new Error('uploadFile() must be implemented by a document provider.');
     }
 
+<<<<<<< HEAD
+    promptWithDocumentMetadata({ prompt, documents, documentMetadata, fileIds }) {
+        if (!Array.isArray(documentMetadata) || documentMetadata.length === 0) {
+            return prompt;
+        }
+
+        const providerDocuments = documentMetadata.map(metadata => {
+            const document = documents[metadata.index] || {};
+            return {
+                index: metadata.index,
+                role: metadata.role,
+                file_name: metadata.fileName || document.originalname || null,
+                provider_file_id: fileIds[metadata.index] || null
+            };
+        });
+
+        return [
+            'Provider-neutral document metadata. Treat this JSON as role mapping only.',
+            '<document_metadata>',
+            JSON.stringify(providerDocuments),
+            '</document_metadata>',
+            '',
+            prompt
+        ].join('\n');
+    }
+
+=======
+>>>>>>> 10c6d1393560111d9127ea10b639cf2e6071d8c9
     async requestAnalysis({ fileIds, prompt, responseSchema, schemaName, model }) {
         this.assertConfigured();
         const content = [

@@ -56,6 +56,13 @@ function validateDocumentAnalysisRequest(request, _response, next) {
 
         request.documentAnalysisRequest = {
             documents,
+<<<<<<< HEAD
+            documentMetadata: parseDocumentMetadata(
+                request.body?.document_metadata,
+                documents.length
+            ),
+=======
+>>>>>>> 10c6d1393560111d9127ea10b639cf2e6071d8c9
             prompt,
             provider,
             model: optionalText(request.body?.model),
@@ -127,4 +134,63 @@ function parseResponseSchema(value) {
     return schema;
 }
 
+<<<<<<< HEAD
+function parseDocumentMetadata(value, documentCount) {
+    const metadataJSON = optionalText(value);
+    if (!metadataJSON) {
+        return [];
+    }
+
+    let metadata;
+    try {
+        metadata = JSON.parse(metadataJSON);
+    } catch {
+        throw new APIError(
+            'Document metadata must be valid JSON.',
+            400,
+            ErrorCodes.INVALID_INPUT
+        );
+    }
+
+    if (!Array.isArray(metadata) || metadata.length !== documentCount) {
+        throw new APIError(
+            'Document metadata must contain one entry for each uploaded document.',
+            400,
+            ErrorCodes.INVALID_INPUT
+        );
+    }
+
+    const seenIndexes = new Set();
+    return metadata.map(item => {
+        const index = Number(item?.index);
+        const role = optionalText(item?.role);
+        const fileName = optionalText(item?.file_name);
+        if (!Number.isInteger(index) || index < 0 || index >= documentCount) {
+            throw new APIError(
+                'Document metadata contains an invalid document index.',
+                400,
+                ErrorCodes.INVALID_INPUT
+            );
+        }
+        if (seenIndexes.has(index)) {
+            throw new APIError(
+                'Document metadata contains duplicate document indexes.',
+                400,
+                ErrorCodes.INVALID_INPUT
+            );
+        }
+        if (!role || !/^[a-z][a-z0-9_]{0,31}$/.test(role)) {
+            throw new APIError(
+                'Document metadata contains an invalid role.',
+                400,
+                ErrorCodes.INVALID_INPUT
+            );
+        }
+        seenIndexes.add(index);
+        return { index, role, fileName };
+    }).sort((left, right) => left.index - right.index);
+}
+
+=======
+>>>>>>> 10c6d1393560111d9127ea10b639cf2e6071d8c9
 module.exports = { validateDocumentAnalysisRequest };
