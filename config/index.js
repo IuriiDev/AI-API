@@ -203,7 +203,7 @@ module.exports = {
                 notes: 'Supports PDF and common text-based document formats through the Files API.'
             },
             defaults: {
-                maxTokens: 4096
+                maxTokens: 12000
             }
         },
 

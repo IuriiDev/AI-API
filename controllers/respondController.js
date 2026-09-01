@@ -91,6 +91,9 @@ async function handleRespond(req, res) {
         provider: providerName = 'openai',
         image,
         response_format: responseFormat,
+        max_tokens: maxTokens,
+        maxTokens,
+        maxCompletionTokens,
         tools,
         tool_choice: toolChoice,
         metadata
@@ -112,14 +115,14 @@ async function handleRespond(req, res) {
 
     // Route to appropriate handler
     if (background) {
-        return handleBackgroundJob(req, res, { requestId, messages, model, provider, image, responseFormat, tools, toolChoice, metadata });
+        return handleBackgroundJob(req, res, { requestId, messages, model, provider, image, responseFormat, maxTokens, maxCompletionTokens, tools, toolChoice, metadata });
     }
 
     if (stream) {
-        return handleStreamingResponse(req, res, { requestId, messages, model, provider, image, responseFormat, tools, toolChoice, metadata });
+        return handleStreamingResponse(req, res, { requestId, messages, model, provider, image, responseFormat, maxTokens, maxCompletionTokens, tools, toolChoice, metadata });
     }
 
-    return handleSyncResponse(req, res, { requestId, messages, model, provider, image, responseFormat, tools, toolChoice, metadata });
+    return handleSyncResponse(req, res, { requestId, messages, model, provider, image, responseFormat, maxTokens, maxCompletionTokens, tools, toolChoice, metadata });
 }
 
 /**
@@ -172,8 +175,8 @@ function parseInput(input, messages) {
 /**
  * Handle synchronous (blocking) response
  */
-async function handleSyncResponse(req, res, { requestId, messages, model, provider, image, responseFormat, tools, toolChoice, metadata }) {
-    const result = await provider.chat({ messages, model, image, responseFormat, tools, toolChoice, metadata });
+async function handleSyncResponse(req, res, { requestId, messages, model, provider, image, responseFormat, maxTokens, maxCompletionTokens, tools, toolChoice, metadata }) {
+    const result = await provider.chat({ messages, model, image, responseFormat, maxTokens, maxCompletionTokens, tools, toolChoice, metadata });
     const text = extractOutputText(result);
 
     logRequest(requestId, 'RESPONSE_COMPLETED', {
@@ -197,7 +200,7 @@ async function handleSyncResponse(req, res, { requestId, messages, model, provid
 /**
  * Handle streaming response via SSE
  */
-async function handleStreamingResponse(req, res, { requestId, messages, model, provider, image, responseFormat, tools, toolChoice, metadata }) {
+async function handleStreamingResponse(req, res, { requestId, messages, model, provider, image, responseFormat, maxTokens, maxCompletionTokens, tools, toolChoice, metadata }) {
     // Set SSE headers
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');
@@ -207,12 +210,12 @@ async function handleStreamingResponse(req, res, { requestId, messages, model, p
 
     try {
         if (typeof provider.chatStream === 'function') {
-            await provider.chatStream({ messages, model, image, responseFormat, tools, toolChoice, metadata }, (chunk) => {
+            await provider.chatStream({ messages, model, image, responseFormat, maxTokens, maxCompletionTokens, tools, toolChoice, metadata }, (chunk) => {
                 res.write(`data: ${JSON.stringify({ text: chunk })}\n\n`);
             });
         } else {
             // Fallback: non-streaming response as single chunk
-            const result = await provider.chat({ messages, model, image, responseFormat, tools, toolChoice, metadata });
+            const result = await provider.chat({ messages, model, image, responseFormat, maxTokens, maxCompletionTokens, tools, toolChoice, metadata });
             res.write(`data: ${JSON.stringify({ text: extractOutputText(result) })}\n\n`);
         }
 
@@ -229,7 +232,7 @@ async function handleStreamingResponse(req, res, { requestId, messages, model, p
 /**
  * Handle background job execution
  */
-async function handleBackgroundJob(req, res, { requestId, messages, model, provider, image, responseFormat, tools, toolChoice, metadata }) {
+async function handleBackgroundJob(req, res, { requestId, messages, model, provider, image, responseFormat, maxTokens, maxCompletionTokens, tools, toolChoice, metadata }) {
     const lastMessage = messages[messages.length - 1];
     const job = jobStore.createJob(lastMessage?.content || '', model);
 
@@ -242,17 +245,17 @@ async function handleBackgroundJob(req, res, { requestId, messages, model, provi
     });
 
     // Process in background (fire and forget)
-    processBackgroundJob(job.id, messages, model, provider, image, requestId, responseFormat, tools, toolChoice, metadata);
+    processBackgroundJob(job.id, messages, model, provider, image, requestId, responseFormat, maxTokens, maxCompletionTokens, tools, toolChoice, metadata);
 }
 
 /**
  * Process job asynchronously
  */
-async function processBackgroundJob(jobId, messages, model, provider, image, requestId, responseFormat, tools, toolChoice, metadata) {
+async function processBackgroundJob(jobId, messages, model, provider, image, requestId, responseFormat, maxTokens, maxCompletionTokens, tools, toolChoice, metadata) {
     jobStore.setJobRunning(jobId);
 
     try {
-        const result = await provider.chat({ messages, model, image, responseFormat, tools, toolChoice, metadata });
+        const result = await provider.chat({ messages, model, image, responseFormat, maxTokens, maxCompletionTokens, tools, toolChoice, metadata });
         const text = extractOutputText(result);
 
         jobStore.setJobCompleted(jobId, text, result.raw);
