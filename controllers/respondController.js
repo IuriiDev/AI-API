@@ -91,13 +91,14 @@ async function handleRespond(req, res) {
         provider: providerName = 'openai',
         image,
         response_format: responseFormat,
-        max_tokens: maxTokens,
-        maxTokens,
+        max_tokens: maxTokensSnakeCase,
+        maxTokens: maxTokensCamelCase,
         maxCompletionTokens,
         tools,
         tool_choice: toolChoice,
         metadata
     } = req.body;
+    const maxTokens = maxTokensCamelCase ?? maxTokensSnakeCase;
 
     // Parse input: accept either 'input' string or 'messages' array
     const messages = parseInput(input, inputMessages);
