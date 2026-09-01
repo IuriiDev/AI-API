@@ -49,7 +49,7 @@ module.exports = {
     },
 
     timeouts: {
-        requestMs: positiveInteger(process.env.REQUEST_TIMEOUT_MS, 30000),
+        requestMs: positiveInteger(process.env.REQUEST_TIMEOUT_MS, 180000),
         retryAttempts: positiveInteger(process.env.RETRY_ATTEMPTS, 3),
         retryDelayMs: positiveInteger(process.env.RETRY_DELAY_MS, 1000)
     },

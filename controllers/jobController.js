@@ -44,8 +44,8 @@ async function handleGetJob(req, res) {
 
     // Include result for completed jobs
     if (job.status === 'completed') {
-        response.text = job.result;
-        response.content = job.result; // iOS compatibility
+        response.text = job.text;
+        response.content = job.text; // iOS compatibility
     }
 
     // Include error for failed jobs
