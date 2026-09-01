@@ -4,7 +4,7 @@
  * Implements: Single Responsibility & Liskov Substitution (SOLID)
  * 
  * Supports:
- * - Chat completions (GPT-5.4, GPT-5.4-mini, GPT-5.4-nano, GPT-5, GPT-5-nano)
+ * - Chat completions (GPT-5.6, GPT-5.6 Sol/Terra/Luna, GPT-5.5, GPT-5.4, GPT-5, and legacy variants)
  * - Streaming responses (SSE)
  * - Image analysis/vision
  * - Image generation (GPT Image 2)

@@ -9,6 +9,10 @@ const ENDPOINTS = {
 // Models
 const MODELS = {
     // Vision + Chat
+    GPT_5_6: 'gpt-5.6',
+    GPT_5_6_SOL: 'gpt-5.6-sol',
+    GPT_5_6_TERRA: 'gpt-5.6-terra',
+    GPT_5_6_LUNA: 'gpt-5.6-luna',
     GPT_5_4_MINI: 'gpt-5.4-mini',
     
     // Image Generation
@@ -17,6 +21,8 @@ const MODELS = {
 
 // Token Limits (use max_completion_tokens for latest API)
 const TOKEN_LIMITS = {
+    GPT_5_6_CONTEXT: 1050000,
+    GPT_5_6_MAX_COMPLETION: 128000,
     GPT_5_4_MINI_CONTEXT: 400000,
     GPT_5_4_MINI_MAX_COMPLETION: 128000,
     DEFAULT_MAX_OUTPUT: 4096

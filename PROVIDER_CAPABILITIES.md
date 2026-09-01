@@ -1,13 +1,13 @@
 # Provider Capabilities
 
-Verified against official provider documentation on 2026-06-19.
+Verified against official provider documentation on 2026-09-01.
 
 | Provider | Current configured models | Direct document input | Gateway document strategy |
 | --- | --- | --- | --- |
-| OpenAI | GPT-5.5, GPT-5.4, GPT-5.4 Mini, GPT-5.4 Nano | PDF, text/code, rich documents, presentations, and spreadsheets | Enabled |
-| Google Gemini | Gemini 3.5 Flash, Gemini 3.1 Pro Preview, Gemini 3.1 Flash-Lite | Native PDF understanding; non-PDF documents are primarily text-extracted | Not implemented |
-| xAI | Grok 4.3 and Grok 4.20 variants | PDF and common text-based documents through the Files API | Enabled |
-| DeepSeek | DeepSeek V4 Flash and DeepSeek V4 Pro | No public direct document-input endpoint is documented | Not available |
+| OpenAI | GPT-5.6 alias, GPT-5.6 Sol, GPT-5.6 Terra, GPT-5.6 Luna, plus GPT-5.5, GPT-5.4, GPT-5.4 Mini, GPT-5.4 Nano, GPT-5, and GPT-5 Nano | PDF, text/code, rich documents, presentations, and spreadsheets | Enabled |
+| Google Gemini | Gemini 3.7 Flash, Gemini 3.6 Flash, Gemini 3.5 Flash, Gemini 3.5 Flash-Lite, Gemini 3.1 Pro Preview, Gemini 3.1 Flash-Lite, and retained Gemini 2.5 models | Native PDF understanding; non-PDF documents are primarily text-extracted | Not implemented |
+| xAI | Grok 4.6, Grok 4.6 Latest, Grok 4.3, and Grok 4.20 variants | PDF and common text-based documents through the Files API | Enabled |
+| DeepSeek | DeepSeek V4 Flash, DeepSeek V4 Pro, and DeepSeek V4 Flash Vision Exp | No public direct document-input endpoint is documented | Not available |
 
 The `/api/document-analysis` contract is provider-neutral. Adding another strategy
 requires a provider implementation and registration in `providers/documentProviders.js`;

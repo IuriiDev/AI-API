@@ -5,7 +5,10 @@
  * Auth: API key in URL parameter (not header)
  *
  * Models:
+ * - gemini-3.7-flash (latest multimodal Flash)
+ * - gemini-3.6-flash (previous multimodal Flash)
  * - gemini-3.5-flash (stable multimodal)
+ * - gemini-3.5-flash-lite (cost-efficient stable model)
  * - gemini-3.1-pro-preview (advanced reasoning preview)
  * - gemini-3.1-flash-lite (stable cost-efficient model)
  * - gemini-2.5-flash (multimodal, 1M context)

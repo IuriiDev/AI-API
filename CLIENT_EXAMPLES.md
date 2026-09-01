@@ -21,7 +21,7 @@ curl -X POST https://ai-api-ckbi.onrender.com/api/document-analysis \
   -F "documents=@/path/to/supporting.docx" \
   -F 'document_metadata=[{"index":0,"role":"primary","file_name":"primary.pdf"},{"index":1,"role":"supporting","file_name":"supporting.docx"}]' \
   -F "provider=grok" \
-  -F "model=grok-4.3" \
+  -F "model=grok-4.6" \
   -F "prompt=Analyze these documents and summarize their key findings." \
   -F 'schema_name=document_summary' \
   -F 'response_schema={"type":"object","additionalProperties":false,"properties":{"summary":{"type":"string"}},"required":["summary"]}'
@@ -38,7 +38,7 @@ configured on the gateway.
 {
   "success": true,
   "provider": "grok",
-  "model": "grok-4.3",
+  "model": "grok-4.6",
   "result": {
     "summary": "..."
   }
@@ -58,7 +58,7 @@ curl -X POST https://ai-api-ckbi.onrender.com/api/ai/respond \
   -H "Content-Type: application/json" \
   -d '{
     "input": "Explain quantum computing",
-    "model": "gpt-5.4-mini"
+    "model": "gpt-5.6-terra"
   }'
 ```
 
@@ -97,7 +97,7 @@ curl -X POST https://ai-api-ckbi.onrender.com/api/ai/respond \
   "text": "AI response here...",
   "content": "AI response here...",
   "id": "chatcmpl-...",
-  "model": "gpt-5.4-mini",
+  "model": "gpt-5.6-terra",
   "provider": "ChatGPT",
   "usage": { "prompt_tokens": 10, "completion_tokens": 150 }
 }

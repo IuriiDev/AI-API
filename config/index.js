@@ -77,24 +77,37 @@ module.exports = {
                 imageGeneration: '/images/generations'
             },
             models: {
-                chat: 'gpt-5.4-mini',
-                vision: 'gpt-5.4-mini',
-                documentAnalysis: process.env.OPENAI_DOCUMENT_MODEL || 'gpt-5.5',
+                chat: 'gpt-5.6-terra',
+                vision: 'gpt-5.6-terra',
+                documentAnalysis: process.env.OPENAI_DOCUMENT_MODEL || 'gpt-5.6-sol',
                 imageGeneration: 'gpt-image-2'
             },
             availableModels: [
-                { id: 'gpt-5.5', displayName: 'GPT-5.5', description: 'Flagship reasoning model' },
-                { id: 'gpt-5.4', displayName: 'GPT-5.4', description: 'High-capability general model' },
-                { id: 'gpt-5.4-mini', displayName: 'GPT-5.4 Mini', description: 'Balanced speed and quality' },
-                { id: 'gpt-5.4-nano', displayName: 'GPT-5.4 Nano', description: 'Low-latency workloads' },
+                { id: 'gpt-5.6', displayName: 'GPT-5.6', description: 'Alias for the latest GPT-5.6 flagship model' },
+                { id: 'gpt-5.6-sol', displayName: 'GPT-5.6 Sol', description: 'Flagship model for complex reasoning and coding' },
+                { id: 'gpt-5.6-terra', displayName: 'GPT-5.6 Terra', description: 'Balanced intelligence and cost' },
+                { id: 'gpt-5.6-luna', displayName: 'GPT-5.6 Luna', description: 'Cost-sensitive high-volume workloads' },
+                { id: 'gpt-5.5', displayName: 'GPT-5.5', description: 'Previous flagship reasoning model', status: 'legacy' },
+                { id: 'gpt-5.4', displayName: 'GPT-5.4', description: 'Previous high-capability general model', status: 'legacy' },
+                { id: 'gpt-5.4-mini', displayName: 'GPT-5.4 Mini', description: 'Previous balanced speed and quality model', status: 'legacy' },
+                { id: 'gpt-5.4-nano', displayName: 'GPT-5.4 Nano', description: 'Previous low-latency model', status: 'legacy' },
                 { id: 'gpt-5', displayName: 'GPT-5', description: 'Legacy flagship model', status: 'legacy' },
                 { id: 'gpt-5-nano', displayName: 'GPT-5 Nano', description: 'Legacy low-latency model', status: 'legacy' }
             ],
-            defaultModel: 'gpt-5.4-mini',
+            defaultModel: 'gpt-5.6-terra',
             documentInput: {
                 supportedByProvider: true,
                 gatewayEnabled: true,
-                models: ['gpt-5.5', 'gpt-5.4', 'gpt-5.4-mini', 'gpt-5.4-nano'],
+                models: [
+                    'gpt-5.6',
+                    'gpt-5.6-sol',
+                    'gpt-5.6-terra',
+                    'gpt-5.6-luna',
+                    'gpt-5.5',
+                    'gpt-5.4',
+                    'gpt-5.4-mini',
+                    'gpt-5.4-nano'
+                ],
                 formats: commonDocumentFormats,
                 notes: 'PDF content includes extracted text and page images; other documents are text-extracted.'
             },
@@ -111,11 +124,14 @@ module.exports = {
                 chat: '/models/{model}:generateContent'
             },
             models: {
-                chat: 'gemini-3.5-flash',
-                vision: 'gemini-3.5-flash'
+                chat: 'gemini-3.7-flash',
+                vision: 'gemini-3.7-flash'
             },
             availableModels: [
+                { id: 'gemini-3.7-flash', displayName: 'Gemini 3.7 Flash', description: 'Latest and most capable Flash model' },
+                { id: 'gemini-3.6-flash', displayName: 'Gemini 3.6 Flash', description: 'Previous-generation Flash model' },
                 { id: 'gemini-3.5-flash', displayName: 'Gemini 3.5 Flash', description: 'Stable multimodal model' },
+                { id: 'gemini-3.5-flash-lite', displayName: 'Gemini 3.5 Flash-Lite', description: 'Fast cost-efficient stable model' },
                 { id: 'gemini-3.1-pro-preview', displayName: 'Gemini 3.1 Pro (Preview)', description: 'Advanced reasoning model' },
                 { id: 'gemini-3.1-flash-lite', displayName: 'Gemini 3.1 Flash-Lite', description: 'Stable cost-efficient model' },
                 { id: 'gemini-2.5-pro', displayName: 'Gemini 2.5 Pro', description: 'Previous stable reasoning model' },
@@ -124,11 +140,18 @@ module.exports = {
                 { id: 'gemini-3-flash-preview', displayName: 'Gemini 3 Flash (Preview)', description: 'Retired preview retained for compatibility metadata', status: 'retired', selectable: false },
                 { id: 'gemini-3.1-flash-lite-preview', displayName: 'Gemini 3.1 Flash-Lite (Preview)', description: 'Retired preview retained for compatibility metadata', status: 'retired', selectable: false }
             ],
-            defaultModel: 'gemini-3.5-flash',
+            defaultModel: 'gemini-3.7-flash',
             documentInput: {
                 supportedByProvider: true,
                 gatewayEnabled: false,
-                models: ['gemini-3.5-flash', 'gemini-3.1-pro-preview', 'gemini-3.1-flash-lite'],
+                models: [
+                    'gemini-3.7-flash',
+                    'gemini-3.6-flash',
+                    'gemini-3.5-flash',
+                    'gemini-3.5-flash-lite',
+                    'gemini-3.1-pro-preview',
+                    'gemini-3.1-flash-lite'
+                ],
                 formats: commonDocumentFormats,
                 notes: 'PDF is processed natively; non-PDF documents are primarily text-extracted.'
             },
@@ -147,12 +170,14 @@ module.exports = {
                 responses: '/responses'
             },
             models: {
-                chat: 'grok-4.3',
-                vision: 'grok-4.3',
-                documentAnalysis: process.env.XAI_DOCUMENT_MODEL || 'grok-4.3'
+                chat: 'grok-4.6',
+                vision: 'grok-4.6',
+                documentAnalysis: process.env.XAI_DOCUMENT_MODEL || 'grok-4.6'
             },
             availableModels: [
-                { id: 'grok-4.3', displayName: 'Grok 4.3', description: 'Recommended general agentic model' },
+                { id: 'grok-4.6', displayName: 'Grok 4.6', description: 'Flagship model for code and general tasks' },
+                { id: 'grok-4.6-latest', displayName: 'Grok 4.6 Latest', description: 'Alias for latest Grok 4.6 features' },
+                { id: 'grok-4.3', displayName: 'Grok 4.3', description: 'Previous recommended general agentic model', status: 'legacy' },
                 { id: 'grok-4.20-0309-reasoning', displayName: 'Grok 4.20 0309 Reasoning', description: 'Reasoning snapshot' },
                 { id: 'grok-4.20-0309-non-reasoning', displayName: 'Grok 4.20 0309 Non-Reasoning', description: 'Low-latency snapshot' },
                 { id: 'grok-4.20-multi-agent-0309', displayName: 'Grok 4.20 Multi-Agent 0309', description: 'Multi-agent research snapshot' },
@@ -162,11 +187,13 @@ module.exports = {
                 { id: 'grok-4-fast-reasoning', displayName: 'Grok 4 Fast Reasoning', description: 'Retired model retained for compatibility metadata', status: 'retired', selectable: false },
                 { id: 'grok-4-fast-non-reasoning', displayName: 'Grok 4 Fast Non-Reasoning', description: 'Retired model retained for compatibility metadata', status: 'retired', selectable: false }
             ],
-            defaultModel: 'grok-4.3',
+            defaultModel: 'grok-4.6',
             documentInput: {
                 supportedByProvider: true,
                 gatewayEnabled: true,
                 models: [
+                    'grok-4.6',
+                    'grok-4.6-latest',
                     'grok-4.3',
                     'grok-4.20-0309-reasoning',
                     'grok-4.20-0309-non-reasoning',
@@ -193,6 +220,7 @@ module.exports = {
             availableModels: [
                 { id: 'deepseek-v4-flash', displayName: 'DeepSeek V4 Flash', description: 'Fast 1M-context model' },
                 { id: 'deepseek-v4-pro', displayName: 'DeepSeek V4 Pro', description: 'Higher-capability 1M-context model' },
+                { id: 'deepseek-v4-flash-vision-exp', displayName: 'DeepSeek V4 Flash Vision Exp', description: 'Experimental vision-capable V4 Flash model' },
                 { id: 'deepseek-chat', displayName: 'DeepSeek Chat', description: 'Deprecated compatibility alias', status: 'legacy' },
                 { id: 'deepseek-reasoner', displayName: 'DeepSeek Reasoner', description: 'Deprecated compatibility alias', status: 'legacy' }
             ],
