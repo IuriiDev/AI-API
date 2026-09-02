@@ -170,11 +170,12 @@ module.exports = {
                 responses: '/responses'
             },
             models: {
-                chat: 'grok-4.6',
+                chat: 'grok-build-0.1',
                 vision: 'grok-4.6',
                 documentAnalysis: process.env.XAI_DOCUMENT_MODEL || 'grok-4.6'
             },
             availableModels: [
+                { id: 'grok-build-0.1', displayName: 'Grok Build 0.1', description: 'Cost-efficient coding model for web app and interface generation' },
                 { id: 'grok-4.6', displayName: 'Grok 4.6', description: 'Flagship model for code and general tasks' },
                 { id: 'grok-4.6-latest', displayName: 'Grok 4.6 Latest', description: 'Alias for latest Grok 4.6 features' },
                 { id: 'grok-4.3', displayName: 'Grok 4.3', description: 'Previous recommended general agentic model', status: 'legacy' },
@@ -187,7 +188,7 @@ module.exports = {
                 { id: 'grok-4-fast-reasoning', displayName: 'Grok 4 Fast Reasoning', description: 'Retired model retained for compatibility metadata', status: 'retired', selectable: false },
                 { id: 'grok-4-fast-non-reasoning', displayName: 'Grok 4 Fast Non-Reasoning', description: 'Retired model retained for compatibility metadata', status: 'retired', selectable: false }
             ],
-            defaultModel: 'grok-4.6',
+            defaultModel: 'grok-build-0.1',
             documentInput: {
                 supportedByProvider: true,
                 gatewayEnabled: true,

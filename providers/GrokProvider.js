@@ -2,7 +2,7 @@
  * GrokProvider - xAI Grok API Implementation
  * 
  * API: OpenAI-compatible (https://api.x.ai/v1)
- * Models: grok-4.6, grok-4.6-latest, and retained earlier Grok variants
+ * Models: grok-build-0.1, grok-4.6, grok-4.6-latest, and retained earlier Grok variants
  * 
  * Uses OpenAI-compatible format, inherits shared functionality from BaseProvider
  */
