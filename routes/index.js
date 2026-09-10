@@ -104,6 +104,7 @@ router.post('/ai/respond',
     asyncHandler(handleRespond)
 );
 
+/**
  * Job File - Download generated DXF
  * GET /api/ai/jobs/:job_id/file
  */
