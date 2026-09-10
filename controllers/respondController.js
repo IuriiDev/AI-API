@@ -18,6 +18,7 @@ const { APIError, ErrorCodes } = require('../middleware/errorHandler');
 const config = require('../config');
 const jobStore = require('../utils/jobStore');
 const { extractDxf } = require('../utils/dxf');
+const { toAutoCADCompatibleDxf } = require('../utils/autocadDxfDocument');
 
 // ═══════════════════════════════════════════════════════════════════════════
 // UTILITIES
@@ -280,15 +281,16 @@ async function processBackgroundJob(jobId, messages, model, provider, image, req
                 toolChoice,
                 metadata
             });
+            const autocadBuffer = toAutoCADCompatibleDxf(fileResult.buffer);
             jobStore.setJobCompleted(jobId, fileResult.text, fileResult.raw, {
-                buffer: fileResult.buffer,
-                name: fileResult.fileName || 'drawing.dxf'
+                buffer: autocadBuffer,
+                name: 'drawing.dxf'
             });
             logRequest(requestId, 'JOB_COMPLETED', {
                 jobId,
                 textLength: fileResult.text?.length,
                 hasFile: true,
-                fileBytes: fileResult.buffer?.length
+                fileBytes: autocadBuffer.length
             });
             return;
         }

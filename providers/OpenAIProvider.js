@@ -190,8 +190,9 @@ class OpenAIProvider extends BaseProvider {
         const payload = {
             model: this.resolveChatModel(model, image),
             instructions: [
-                'Use the python tool to write a complete AutoCAD R2000 ASCII DXF to a file named drawing.dxf.',
-                'Do not paste the DXF into the chat. Reply with a one-line confirmation after the file is saved.'
+                'Use the python tool and ezdxf to create a new AutoCAD R2004 drawing.',
+                'Call ezdxf.new("R2004", setup=True), add geometry to modelspace, then save drawing.dxf.',
+                'Do not hand-write DXF group codes or a minimal DXF. Do not paste DXF into the chat.'
             ].join(' '),
             input: [{ role: 'user', content }],
             tools: [{
