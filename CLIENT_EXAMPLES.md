@@ -93,7 +93,7 @@ curl -X POST https://ai-api-ckbi.onrender.com/api/ai/respond \
 
 The client owns the CAD prompt. Send the drawing photo as JPEG base64, request a long completion, and use a background job because DXF generation is slow.
 
-Preferred vision model: `grok-4.6`. An explicit `model` is honored even when `image` is set.
+Preferred vision model for CAD: `grok-4.20-0309-non-reasoning`. An explicit `model` is honored even when `image` is set.
 
 ```bash
 curl -X POST https://ai-api-ckbi.onrender.com/api/ai/respond \
@@ -102,7 +102,7 @@ curl -X POST https://ai-api-ckbi.onrender.com/api/ai/respond \
     "messages": [{"role": "user", "content": "<CAD DXF conversion prompt>"}],
     "image": "<base64-encoded-jpeg>",
     "provider": "grok",
-    "model": "grok-4.6",
+    "model": "grok-4.20-0309-non-reasoning",
     "max_tokens": 32768,
     "background": true
   }'
