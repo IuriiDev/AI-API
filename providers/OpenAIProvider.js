@@ -25,7 +25,7 @@ class OpenAIProvider extends BaseProvider {
      * @param {import('./BaseProvider').ChatParams} params
      * @returns {Promise<import('./BaseProvider').ChatResponse>}
      */
-    async chat({ messages, model, maxCompletionTokens, image, responseFormat, tools, toolChoice, metadata }) {
+    async chat({ messages, model, maxCompletionTokens, maxTokens, image, responseFormat, tools, toolChoice, metadata }) {
         const url = this.buildUrl(this.endpoints.chat);
 
         // If image provided, transform messages for vision
@@ -38,9 +38,9 @@ class OpenAIProvider extends BaseProvider {
             : responseFormat;
 
         const payload = {
-            model: image ? this.models.vision : (model || this.models.chat),
+            model: this.resolveChatModel(model, image),
             messages: formattedMessages,
-            max_completion_tokens: maxCompletionTokens || this.defaults.maxCompletionTokens,
+            max_completion_tokens: this.resolveMaxOutputTokens(maxCompletionTokens, maxTokens),
             response_format: normalizedResponseFormat,
             tools,
             tool_choice: toolChoice,
@@ -56,7 +56,7 @@ class OpenAIProvider extends BaseProvider {
      * @param {import('./BaseProvider').ChatParams} params
      * @param {Function} onChunk - Callback for each text chunk
      */
-    async chatStream({ messages, model, maxCompletionTokens, image, responseFormat, tools, toolChoice, metadata }, onChunk) {
+    async chatStream({ messages, model, maxCompletionTokens, maxTokens, image, responseFormat, tools, toolChoice, metadata }, onChunk) {
         const url = this.buildUrl(this.endpoints.chat);
 
         // If image provided, transform messages for vision
@@ -69,9 +69,9 @@ class OpenAIProvider extends BaseProvider {
             : responseFormat;
 
         const payload = {
-            model: image ? this.models.vision : (model || this.models.chat),
+            model: this.resolveChatModel(model, image),
             messages: formattedMessages,
-            max_completion_tokens: maxCompletionTokens || this.defaults.maxCompletionTokens,
+            max_completion_tokens: this.resolveMaxOutputTokens(maxCompletionTokens, maxTokens),
             response_format: normalizedResponseFormat,
             tools,
             tool_choice: toolChoice,

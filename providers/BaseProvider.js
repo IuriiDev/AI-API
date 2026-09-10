@@ -27,6 +27,7 @@ const config = require('../config');
  * @property {Message[]} messages - Conversation messages
  * @property {string} [model] - Model to use
  * @property {number} [maxCompletionTokens] - Max tokens in response
+ * @property {number} [maxTokens] - Alternate max-tokens field used by Grok-style clients
  * @property {string} [image] - Base64 encoded image
  * @property {Object[]} [tools] - Tool definitions (OpenAI-compatible schema)
  * @property {'auto'|'none'|Object} [toolChoice] - Tool selection strategy
@@ -200,6 +201,31 @@ class BaseProvider {
     // ═══════════════════════════════════════════════════════════════════════
     // ABSTRACT METHODS (must be implemented by providers)
     // ═══════════════════════════════════════════════════════════════════════
+
+    /**
+     * Prefer an explicit client model. When omitted, use vision for image
+     * requests and the provider chat default otherwise.
+     * @param {string} [model]
+     * @param {string} [image]
+     * @returns {string}
+     */
+    resolveChatModel(model, image) {
+        return model || (image ? this.models.vision : this.models.chat);
+    }
+
+    /**
+     * Accept both OpenAI-style max_completion_tokens and Grok-style max_tokens.
+     * @param {number} [maxCompletionTokens]
+     * @param {number} [maxTokens]
+     * @returns {number|undefined}
+     */
+    resolveMaxOutputTokens(maxCompletionTokens, maxTokens) {
+        return maxCompletionTokens
+            || maxTokens
+            || this.defaults.maxCompletionTokens
+            || this.defaults.maxTokens
+            || this.defaults.maxOutputTokens;
+    }
 
     /**
      * Chat completion

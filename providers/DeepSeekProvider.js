@@ -19,7 +19,7 @@ class DeepSeekProvider extends BaseProvider {
      * @param {import('./BaseProvider').ChatParams} params
      * @returns {Promise<import('./BaseProvider').ChatResponse>}
      */
-    async chat({ messages, model, maxCompletionTokens, responseFormat, tools, toolChoice, metadata }) {
+    async chat({ messages, model, maxCompletionTokens, maxTokens, responseFormat, tools, toolChoice, metadata }) {
         const url = this.buildUrl(this.endpoints.chat);
 
         const normalizedResponseFormat = typeof responseFormat === 'string'
@@ -29,7 +29,7 @@ class DeepSeekProvider extends BaseProvider {
         const payload = {
             model: model || this.models.chat,
             messages,
-            max_tokens: maxCompletionTokens || this.defaults.maxTokens,
+            max_tokens: this.resolveMaxOutputTokens(maxCompletionTokens, maxTokens),
             response_format: normalizedResponseFormat,
             tools,
             tool_choice: toolChoice,
@@ -45,7 +45,7 @@ class DeepSeekProvider extends BaseProvider {
      * @param {import('./BaseProvider').ChatParams} params
      * @param {Function} onChunk - Callback for each text chunk
      */
-    async chatStream({ messages, model, maxCompletionTokens, responseFormat, tools, toolChoice, metadata }, onChunk) {
+    async chatStream({ messages, model, maxCompletionTokens, maxTokens, responseFormat, tools, toolChoice, metadata }, onChunk) {
         const url = this.buildUrl(this.endpoints.chat);
 
         const normalizedResponseFormat = typeof responseFormat === 'string'
@@ -55,7 +55,7 @@ class DeepSeekProvider extends BaseProvider {
         const payload = {
             model: model || this.models.chat,
             messages,
-            max_tokens: maxCompletionTokens || this.defaults.maxTokens,
+            max_tokens: this.resolveMaxOutputTokens(maxCompletionTokens, maxTokens),
             response_format: normalizedResponseFormat,
             tools,
             tool_choice: toolChoice,

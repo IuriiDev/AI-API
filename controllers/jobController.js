@@ -8,6 +8,7 @@
 
 const jobStore = require('../utils/jobStore');
 const { APIError, ErrorCodes } = require('../middleware/errorHandler');
+const { extractDxf } = require('../utils/dxf');
 
 /**
  * GET /ai/jobs/:job_id
@@ -46,6 +47,10 @@ async function handleGetJob(req, res) {
     if (job.status === 'completed') {
         response.text = job.text;
         response.content = job.text; // iOS compatibility
+        const dxf = extractDxf(job.text);
+        if (dxf) {
+            response.dxf = dxf;
+        }
     }
 
     // Include error for failed jobs

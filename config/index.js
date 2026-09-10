@@ -49,7 +49,7 @@ module.exports = {
     },
 
     timeouts: {
-        requestMs: positiveInteger(process.env.REQUEST_TIMEOUT_MS, 180000),
+        requestMs: positiveInteger(process.env.REQUEST_TIMEOUT_MS, 300000),
         retryAttempts: positiveInteger(process.env.RETRY_ATTEMPTS, 3),
         retryDelayMs: positiveInteger(process.env.RETRY_DELAY_MS, 1000)
     },
@@ -170,7 +170,7 @@ module.exports = {
                 responses: '/responses'
             },
             models: {
-                chat: 'grok-build-0.1',
+                chat: 'grok-4.20-0309-non-reasoning',
                 vision: 'grok-4.6',
                 documentAnalysis: process.env.XAI_DOCUMENT_MODEL || 'grok-4.6'
             },
@@ -188,7 +188,7 @@ module.exports = {
                 { id: 'grok-4-fast-reasoning', displayName: 'Grok 4 Fast Reasoning', description: 'Retired model retained for compatibility metadata', status: 'retired', selectable: false },
                 { id: 'grok-4-fast-non-reasoning', displayName: 'Grok 4 Fast Non-Reasoning', description: 'Retired model retained for compatibility metadata', status: 'retired', selectable: false }
             ],
-            defaultModel: 'grok-build-0.1',
+            defaultModel: 'grok-4.20-0309-non-reasoning',
             documentInput: {
                 supportedByProvider: true,
                 gatewayEnabled: true,
@@ -204,7 +204,7 @@ module.exports = {
                 notes: 'Supports PDF and common text-based document formats through the Files API.'
             },
             defaults: {
-                maxTokens: 12000
+                maxTokens: 32768
             }
         },
 

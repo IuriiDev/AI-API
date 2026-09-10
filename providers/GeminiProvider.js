@@ -53,8 +53,8 @@ class GeminiProvider extends BaseProvider {
      * @param {import('./BaseProvider').ChatParams} params
      * @returns {Promise<import('./BaseProvider').ChatResponse>}
      */
-    async chat({ messages, model, maxCompletionTokens, image, responseFormat, tools, toolChoice }) {
-        const modelName = image ? this.models.vision : (model || this.models.chat);
+    async chat({ messages, model, maxCompletionTokens, maxTokens, image, responseFormat, tools, toolChoice }) {
+        const modelName = this.resolveChatModel(model, image);
         const url = this.buildGeminiUrl(modelName);
 
         // Convert messages to Gemini format (with optional image)
@@ -66,7 +66,7 @@ class GeminiProvider extends BaseProvider {
         const payload = {
             contents,
             generationConfig: {
-                maxOutputTokens: maxCompletionTokens || this.defaults.maxOutputTokens,
+                maxOutputTokens: this.resolveMaxOutputTokens(maxCompletionTokens, maxTokens),
                 responseMimeType: this.resolveResponseMimeType(responseFormat)
             },
             tools: functionDeclarations,
@@ -117,8 +117,8 @@ class GeminiProvider extends BaseProvider {
     /**
      * Streaming chat completion
      */
-    async chatStream({ messages, model, maxCompletionTokens, image, responseFormat, tools, toolChoice }, onChunk) {
-        const modelName = image ? this.models.vision : (model || this.models.chat);
+    async chatStream({ messages, model, maxCompletionTokens, maxTokens, image, responseFormat, tools, toolChoice }, onChunk) {
+        const modelName = this.resolveChatModel(model, image);
         const url = this.buildGeminiUrl(modelName, 'streamGenerateContent');
 
         const contents = this.convertToGeminiFormat(messages, image);
@@ -128,7 +128,7 @@ class GeminiProvider extends BaseProvider {
         const payload = {
             contents,
             generationConfig: {
-                maxOutputTokens: maxCompletionTokens || this.defaults.maxOutputTokens,
+                maxOutputTokens: this.resolveMaxOutputTokens(maxCompletionTokens, maxTokens),
                 responseMimeType: this.resolveResponseMimeType(responseFormat)
             },
             tools: functionDeclarations,

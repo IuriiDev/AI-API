@@ -20,7 +20,7 @@ class GrokProvider extends BaseProvider {
      * @param {import('./BaseProvider').ChatParams} params
      * @returns {Promise<import('./BaseProvider').ChatResponse>}
      */
-    async chat({ messages, model, maxTokens, image, responseFormat, tools, toolChoice, metadata }) {
+    async chat({ messages, model, maxTokens, maxCompletionTokens, image, responseFormat, tools, toolChoice, metadata }) {
         const url = this.buildUrl(this.endpoints.chat);
 
         // Use inherited formatMessagesWithImage from BaseProvider
@@ -33,9 +33,9 @@ class GrokProvider extends BaseProvider {
             : responseFormat;
 
         const payload = {
-            model: image ? this.models.vision : (model || this.models.chat),
+            model: this.resolveChatModel(model, image),
             messages: formattedMessages,
-            max_tokens: maxTokens || this.defaults.maxTokens,
+            max_tokens: this.resolveMaxOutputTokens(maxCompletionTokens, maxTokens),
             response_format: normalizedResponseFormat,
             tools,
             tool_choice: toolChoice,
@@ -81,7 +81,7 @@ class GrokProvider extends BaseProvider {
      * @param {import('./BaseProvider').ChatParams} params
      * @param {Function} onChunk
      */
-    async chatStream({ messages, model, maxTokens, image, responseFormat, tools, toolChoice, metadata }, onChunk) {
+    async chatStream({ messages, model, maxTokens, maxCompletionTokens, image, responseFormat, tools, toolChoice, metadata }, onChunk) {
         const url = this.buildUrl(this.endpoints.chat);
 
         const formattedMessages = image
@@ -93,9 +93,9 @@ class GrokProvider extends BaseProvider {
             : responseFormat;
 
         const payload = {
-            model: image ? this.models.vision : (model || this.models.chat),
+            model: this.resolveChatModel(model, image),
             messages: formattedMessages,
-            max_tokens: maxTokens || this.defaults.maxTokens,
+            max_tokens: this.resolveMaxOutputTokens(maxCompletionTokens, maxTokens),
             response_format: normalizedResponseFormat,
             tools,
             tool_choice: toolChoice,

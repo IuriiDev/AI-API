@@ -17,6 +17,7 @@ const { getProvider } = require('../providers');
 const { APIError, ErrorCodes } = require('../middleware/errorHandler');
 const config = require('../config');
 const jobStore = require('../utils/jobStore');
+const { extractDxf } = require('../utils/dxf');
 
 // ═══════════════════════════════════════════════════════════════════════════
 // UTILITIES
@@ -179,14 +180,16 @@ function parseInput(input, messages) {
 async function handleSyncResponse(req, res, { requestId, messages, model, provider, image, responseFormat, maxTokens, maxCompletionTokens, tools, toolChoice, metadata }) {
     const result = await provider.chat({ messages, model, image, responseFormat, maxTokens, maxCompletionTokens, tools, toolChoice, metadata });
     const text = extractOutputText(result);
+    const dxf = extractDxf(text);
 
     logRequest(requestId, 'RESPONSE_COMPLETED', {
         responseId: result.id,
         model: result.model,
-        textLength: text?.length
+        textLength: text?.length,
+        hasDxf: !!dxf
     });
 
-    res.json({
+    const response = {
         success: true,
         text,
         content: text, // iOS app compatibility
@@ -194,8 +197,13 @@ async function handleSyncResponse(req, res, { requestId, messages, model, provid
         model: result.model,
         provider: result.provider,
         usage: result.usage,
+        finishReason: result.finishReason,
         raw: result.raw
-    });
+    };
+    if (dxf) {
+        response.dxf = dxf;
+    }
+    res.json(response);
 }
 
 /**

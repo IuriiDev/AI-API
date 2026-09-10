@@ -89,6 +89,40 @@ curl -X POST https://ai-api-ckbi.onrender.com/api/ai/respond \
   }'
 ```
 
+### CAD photo to DXF (iOS CAD Viewer)
+
+The client owns the CAD prompt. Send the drawing photo as JPEG base64, request a long completion, and use a background job because DXF generation is slow.
+
+Preferred vision model: `grok-4.6`. An explicit `model` is honored even when `image` is set.
+
+```bash
+curl -X POST https://ai-api-ckbi.onrender.com/api/ai/respond \
+  -H "Content-Type: application/json" \
+  -d '{
+    "messages": [{"role": "user", "content": "<CAD DXF conversion prompt>"}],
+    "image": "<base64-encoded-jpeg>",
+    "provider": "grok",
+    "model": "grok-4.6",
+    "max_tokens": 32768,
+    "background": true
+  }'
+```
+
+Poll `GET /api/ai/jobs/:job_id`. When `status` is `completed`, use `dxf` if present (ASCII DXF with markdown fences stripped). Otherwise parse `text` / `content`.
+
+```json
+{
+  "success": true,
+  "job_id": "job_abc123def456",
+  "status": "completed",
+  "text": "0\\nSECTION\\n...",
+  "content": "0\\nSECTION\\n...",
+  "dxf": "0\\nSECTION\\n..."
+}
+```
+
+Synchronous `POST /ai/respond` (without `background`) also returns `dxf` when the response is a valid DXF file.
+
 ### Response
 
 ```json
