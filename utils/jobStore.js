@@ -53,6 +53,8 @@ function createJob(input, model) {
         text: null,
         error: null,
         raw: null,
+        fileBuffer: null,
+        fileName: null,
         createdAt: Date.now(),
         updatedAt: Date.now()
     };
@@ -89,11 +91,13 @@ function setJobRunning(id) {
 /**
  * Mark job as completed with result
  */
-function setJobCompleted(id, text, raw = null) {
+function setJobCompleted(id, text, raw = null, file = null) {
     return updateJob(id, {
         status: JobStatus.COMPLETED,
         text,
-        raw
+        raw,
+        fileBuffer: file?.buffer || null,
+        fileName: file?.name || null
     });
 }
 

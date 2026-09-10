@@ -15,6 +15,7 @@
 
 const axios = require('axios');
 const config = require('../config');
+const { extractDxf } = require('../utils/dxf');
 
 /**
  * @typedef {Object} Message
@@ -225,6 +226,27 @@ class BaseProvider {
             || this.defaults.maxCompletionTokens
             || this.defaults.maxTokens
             || this.defaults.maxOutputTokens;
+    }
+
+    /**
+     * Produce a downloadable DXF file. Default wraps chat text as UTF-8 bytes.
+     * OpenAI overrides this to download a Code Interpreter generated file.
+     * @param {ChatParams} params
+     * @returns {Promise<{ buffer: Buffer, fileName: string, text: string|null, raw: Object|null }>}
+     */
+    async generateDxfFile(params) {
+        const result = await this.chat(params);
+        const text = result?.content || null;
+        const dxf = extractDxf(text);
+        if (!dxf) {
+            throw new Error(`${this.name} returned no DXF file.`);
+        }
+        return {
+            buffer: Buffer.from(dxf, 'utf8'),
+            fileName: 'drawing.dxf',
+            text,
+            raw: result?.raw || null
+        };
     }
 
     /**

@@ -97,9 +97,12 @@ async function handleRespond(req, res) {
         maxCompletionTokens,
         tools,
         tool_choice: toolChoice,
-        metadata
+        metadata,
+        return_file: returnFileSnakeCase,
+        returnFile: returnFileCamelCase
     } = req.body;
     const maxTokens = maxTokensCamelCase ?? maxTokensSnakeCase;
+    const returnFile = Boolean(returnFileCamelCase ?? returnFileSnakeCase);
 
     // Parse input: accept either 'input' string or 'messages' array
     const messages = parseInput(input, inputMessages);
@@ -110,14 +113,15 @@ async function handleRespond(req, res) {
         background,
         provider: providerName,
         messageCount: messages.length,
-        hasImage: !!image
+        hasImage: !!image,
+        returnFile
     });
 
     const provider = getProvider(providerName);
 
     // Route to appropriate handler
     if (background) {
-        return handleBackgroundJob(req, res, { requestId, messages, model, provider, image, responseFormat, maxTokens, maxCompletionTokens, tools, toolChoice, metadata });
+        return handleBackgroundJob(req, res, { requestId, messages, model, provider, image, responseFormat, maxTokens, maxCompletionTokens, tools, toolChoice, metadata, returnFile });
     }
 
     if (stream) {
@@ -241,11 +245,11 @@ async function handleStreamingResponse(req, res, { requestId, messages, model, p
 /**
  * Handle background job execution
  */
-async function handleBackgroundJob(req, res, { requestId, messages, model, provider, image, responseFormat, maxTokens, maxCompletionTokens, tools, toolChoice, metadata }) {
+async function handleBackgroundJob(req, res, { requestId, messages, model, provider, image, responseFormat, maxTokens, maxCompletionTokens, tools, toolChoice, metadata, returnFile }) {
     const lastMessage = messages[messages.length - 1];
     const job = jobStore.createJob(lastMessage?.content || '', model);
 
-    logRequest(requestId, 'JOB_CREATED', { jobId: job.id });
+    logRequest(requestId, 'JOB_CREATED', { jobId: job.id, returnFile });
 
     res.json({
         success: true,
@@ -254,16 +258,41 @@ async function handleBackgroundJob(req, res, { requestId, messages, model, provi
     });
 
     // Process in background (fire and forget)
-    processBackgroundJob(job.id, messages, model, provider, image, requestId, responseFormat, maxTokens, maxCompletionTokens, tools, toolChoice, metadata);
+    processBackgroundJob(job.id, messages, model, provider, image, requestId, responseFormat, maxTokens, maxCompletionTokens, tools, toolChoice, metadata, returnFile);
 }
 
 /**
  * Process job asynchronously
  */
-async function processBackgroundJob(jobId, messages, model, provider, image, requestId, responseFormat, maxTokens, maxCompletionTokens, tools, toolChoice, metadata) {
+async function processBackgroundJob(jobId, messages, model, provider, image, requestId, responseFormat, maxTokens, maxCompletionTokens, tools, toolChoice, metadata, returnFile) {
     jobStore.setJobRunning(jobId);
 
     try {
+        if (returnFile && typeof provider.generateDxfFile === 'function') {
+            const fileResult = await provider.generateDxfFile({
+                messages,
+                model,
+                image,
+                responseFormat,
+                maxTokens,
+                maxCompletionTokens,
+                tools,
+                toolChoice,
+                metadata
+            });
+            jobStore.setJobCompleted(jobId, fileResult.text, fileResult.raw, {
+                buffer: fileResult.buffer,
+                name: fileResult.fileName || 'drawing.dxf'
+            });
+            logRequest(requestId, 'JOB_COMPLETED', {
+                jobId,
+                textLength: fileResult.text?.length,
+                hasFile: true,
+                fileBytes: fileResult.buffer?.length
+            });
+            return;
+        }
+
         const result = await provider.chat({ messages, model, image, responseFormat, maxTokens, maxCompletionTokens, tools, toolChoice, metadata });
         const text = extractOutputText(result);
 

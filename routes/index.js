@@ -10,7 +10,7 @@ const router = express.Router();
 
 // Controllers
 const { handleRespond } = require('../controllers/respondController');
-const { handleGetJob } = require('../controllers/jobController');
+const { handleGetJob, handleGetJobFile } = require('../controllers/jobController');
 const { handleImageAnalysis } = require('../controllers/imageAnalysisController');
 const { handleImageGeneration } = require('../controllers/imageGenerationController');
 const { handleDocumentAnalysis } = require('../controllers/documentAnalysisController');
@@ -50,6 +50,7 @@ router.get('/', (req, res) => {
         endpoints: {
             respond: 'POST /api/ai/respond',
             jobs: 'GET /api/ai/jobs/:job_id',
+            jobFile: 'GET /api/ai/jobs/:job_id/file',
             imageAnalysis: 'POST /api/analyze-image',
             imageGeneration: 'POST /api/generate-image',
             documentAnalysis: 'POST /api/document-analysis',
@@ -101,6 +102,13 @@ router.post('/ai/respond',
     rateLimiter,
     validateProvider,
     asyncHandler(handleRespond)
+);
+
+ * Job File - Download generated DXF
+ * GET /api/ai/jobs/:job_id/file
+ */
+router.get('/ai/jobs/:job_id/file',
+    asyncHandler(handleGetJobFile)
 );
 
 /**
