@@ -191,8 +191,8 @@ class OpenAIProvider extends BaseProvider {
             model: this.resolveChatModel(model, image),
             instructions: [
                 'Use the python tool and ezdxf to create a new AutoCAD R2004 drawing.',
-                'Call ezdxf.new("R2004", setup=True), add geometry to modelspace, then save drawing.dxf.',
-                'Do not hand-write DXF group codes or a minimal DXF. Do not paste DXF into the chat.'
+                'Call ezdxf.new("R2004", setup=True), add detailed colored geometry to modelspace, then save drawing.dxf.',
+                'Trace the photo accurately. Do not hand-write DXF group codes or a minimal DXF. Do not paste DXF into the chat.'
             ].join(' '),
             input: [{ role: 'user', content }],
             tools: [{

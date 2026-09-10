@@ -499,13 +499,27 @@ function collectLayers(entities) {
     const colors = {
         0: 7,
         WALLS: 7,
+        'WALL-EXISTING': 8,
         WINDOWS: 5,
         DOORS: 3,
+        GLASS: 4,
         FURNITURE: 6,
+        CABINETS: 30,
+        APPLIANCES: 140,
         FIXTURES: 4,
+        PLUMBING: 150,
+        ELECTRICAL: 40,
+        STAIRS: 94,
+        COLUMNS: 9,
+        GRID: 9,
+        LANDSCAPE: 3,
+        VEHICLES: 200,
         DIMENSIONS: 1,
         TEXT: 2,
-        DETAILS: 7
+        TITLE: 210,
+        'HATCH-OUTLINE': 8,
+        DETAILS: 8,
+        LOGO: 6
     };
     const seen = new Map();
     seen.set('0', 7);
